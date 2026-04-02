@@ -1,7 +1,20 @@
 """Formularios para el módulo de rentas."""
 from django import forms
+from django.db.models import F, ExpressionWrapper, IntegerField
 from .models import Renta, Cliente
 from inventario.models import Equipo
+
+
+def equipos_con_disponibles():
+    """QuerySet de equipos activos con al menos 1 unidad disponible."""
+    return Equipo.objects.filter(activo=True).annotate(
+        calc_disp=ExpressionWrapper(
+            F('cantidad_total')
+            - F('cantidad_en_renta')
+            - F('cantidad_en_mantenimiento'),
+            output_field=IntegerField(),
+        )
+    ).filter(calc_disp__gt=0)
 
 
 class RentaForm(forms.ModelForm):
@@ -34,6 +47,7 @@ class RentaForm(forms.ModelForm):
         model = Renta
         fields = [
             'equipo',
+            'cantidad',
             'fecha_inicio',
             'fecha_vencimiento',
             'precio',
@@ -43,6 +57,9 @@ class RentaForm(forms.ModelForm):
         widgets = {
             'equipo': forms.Select(
                 attrs={'class': 'input-campo'}
+            ),
+            'cantidad': forms.NumberInput(
+                attrs={'class': 'input-campo', 'min': 1}
             ),
             'fecha_inicio': forms.DateInput(
                 attrs={'class': 'input-campo', 'type': 'date'},
@@ -64,27 +81,26 @@ class RentaForm(forms.ModelForm):
         }
         labels = {
             'equipo': 'Equipo',
+            'cantidad': 'Cantidad de unidades a rentar',
             'fecha_inicio': 'Fecha de inicio',
             'fecha_vencimiento': 'Fecha de vencimiento',
-            'precio': 'Precio (MXN)',
+            'precio': 'Precio total (MXN)',
             'deposito': 'Depósito (MXN)',
             'notas': 'Notas (opcional)',
         }
 
     def __init__(self, *args, **kwargs):
-        """Filtra equipos disponibles solamente."""
+        """Filtra equipos con unidades disponibles."""
         super().__init__(*args, **kwargs)
-        self.fields['equipo'].queryset = Equipo.objects.filter(
-            activo=True,
-            estado='disponible',
-        )
+        self.fields['equipo'].queryset = equipos_con_disponibles()
 
     def clean(self):
-        """Valida fechas y RN-001 (una sola renta activa por equipo)."""
+        """Valida fechas y disponibilidad del equipo."""
         cleaned = super().clean()
         fecha_inicio = cleaned.get('fecha_inicio')
         fecha_vencimiento = cleaned.get('fecha_vencimiento')
         equipo = cleaned.get('equipo')
+        cantidad = cleaned.get('cantidad') or 1
 
         if fecha_inicio and fecha_vencimiento:
             if fecha_vencimiento <= fecha_inicio:
@@ -93,12 +109,13 @@ class RentaForm(forms.ModelForm):
                     'a la fecha de inicio.'
                 )
 
-        # RN-001: Un equipo solo puede tener una renta activa
-        if equipo and equipo.tiene_renta_activa():
-            raise forms.ValidationError(
-                f'El equipo "{equipo.nombre}" ya tiene una '
-                'renta activa.'
-            )
+        if equipo:
+            if not equipo.tiene_disponibles(cantidad):
+                raise forms.ValidationError(
+                    f'Solo hay {equipo.cantidad_disponible} unidad(es) '
+                    f'disponible(s) de "{equipo.nombre}". '
+                    f'No se pueden rentar {cantidad}.'
+                )
 
         return cleaned
 
@@ -110,11 +127,17 @@ class SolicitudRentaForm(forms.Form):
     """
 
     equipo = forms.ModelChoiceField(
-        queryset=Equipo.objects.filter(
-            activo=True, estado='disponible'
-        ),
+        queryset=Equipo.objects.none(),
         label='Equipo',
         widget=forms.Select(attrs={'class': 'input-campo'}),
+    )
+    cantidad = forms.IntegerField(
+        label='Cantidad de unidades a rentar',
+        min_value=1,
+        initial=1,
+        widget=forms.NumberInput(
+            attrs={'class': 'input-campo', 'min': 1}
+        ),
     )
     cliente_nombre = forms.CharField(
         label='Nombre del cliente',
@@ -149,7 +172,7 @@ class SolicitudRentaForm(forms.Form):
         ),
     )
     precio = forms.DecimalField(
-        label='Precio (MXN)',
+        label='Precio total (MXN)',
         max_digits=10,
         decimal_places=2,
         widget=forms.NumberInput(
@@ -180,15 +203,27 @@ class SolicitudRentaForm(forms.Form):
         ),
     )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['equipo'].queryset = equipos_con_disponibles()
+
     def clean(self):
-        """Valida que la fecha de vencimiento sea posterior al inicio."""
+        """Valida fechas y disponibilidad."""
         cleaned = super().clean()
         inicio = cleaned.get('fecha_inicio')
         vencimiento = cleaned.get('fecha_vencimiento')
+        equipo = cleaned.get('equipo')
+        cantidad = cleaned.get('cantidad') or 1
+
         if inicio and vencimiento and vencimiento <= inicio:
             raise forms.ValidationError(
                 'La fecha de vencimiento debe ser posterior '
                 'a la fecha de inicio.'
+            )
+        if equipo and not equipo.tiene_disponibles(cantidad):
+            raise forms.ValidationError(
+                f'Solo hay {equipo.cantidad_disponible} unidad(es) '
+                f'disponible(s) de "{equipo.nombre}".'
             )
         return cleaned
 

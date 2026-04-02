@@ -2,6 +2,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
 from rentas.models import Renta
+from inventario.models import Equipo
 from authentication.decorators import empleado_o_admin
 
 
@@ -42,6 +43,7 @@ def historial_lista(request):
 
     contexto = {
         'rentas': rentas_page,
+        'equipos': Equipo.objects.filter(activo=True).order_by('nombre'),
         'filtro_cliente': cliente_nombre,
         'filtro_equipo': equipo_nombre,
         'filtro_estado': estado,

@@ -34,6 +34,13 @@
                 {{ form.equipo }}
                 {% for error in form.equipo.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
             </div>
+            <div class="campo-grupo{% if form.cantidad.errors %} campo-grupo--error{% endif %}">
+                <label for="{{ form.cantidad.id_for_label }}" class="campo-etiqueta">
+                    {{ form.cantidad.label }} <span class="campo-requerido">*</span>
+                </label>
+                {{ form.cantidad }}
+                {% for error in form.cantidad.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
+            </div>
         </fieldset>
 
         <fieldset class="formulario-fieldset">

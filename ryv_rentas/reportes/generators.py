@@ -42,17 +42,17 @@ def generar_pdf_inventario(equipos_qs):
     )
     elementos.append(Spacer(1, 20))
 
-    datos = [['Equipo', 'Categoría', 'Estado', 'Disponibles', 'Total']]
+    datos = [['Equipo', 'Total', 'En Renta', 'Mantenimiento', 'Disponible']]
     for equipo in equipos_qs:
         datos.append([
             equipo.nombre,
-            equipo.categoria.nombre if equipo.categoria else '—',
-            equipo.get_estado_display(),
-            str(equipo.cantidad_disponible),
             str(equipo.cantidad_total),
+            str(equipo.cantidad_en_renta),
+            str(equipo.cantidad_en_mantenimiento),
+            str(equipo.cantidad_disponible),
         ])
 
-    tabla = Table(datos, colWidths=[180, 120, 90, 80, 60])
+    tabla = Table(datos, colWidths=[190, 60, 70, 90, 80])
     tabla.setStyle(TableStyle([
         (
             'BACKGROUND',
@@ -68,7 +68,7 @@ def generar_pdf_inventario(equipos_qs):
             [colors.white, colors.HexColor('#F2F3F4')],
         ),
         ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-        ('ALIGN', (3, 0), (-1, -1), 'CENTER'),
+        ('ALIGN', (1, 0), (-1, -1), 'CENTER'),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
         ('TOPPADDING', (0, 0), (-1, -1), 6),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
@@ -111,12 +111,13 @@ def generar_pdf_rentas(rentas_qs, periodo_inicio=None, periodo_fin=None):
     elementos.append(Spacer(1, 20))
 
     datos = [
-        ['Equipo', 'Cliente', 'Inicio', 'Vencimiento', 'Precio (MXN)']
+        ['Equipo', 'Cant.', 'Cliente', 'Inicio', 'Vencimiento', 'Precio (MXN)']
     ]
     total = 0
     for renta in rentas_qs:
         datos.append([
             renta.equipo.nombre,
+            str(renta.cantidad),
             renta.cliente.nombre,
             str(renta.fecha_inicio),
             str(renta.fecha_vencimiento),
@@ -124,9 +125,9 @@ def generar_pdf_rentas(rentas_qs, periodo_inicio=None, periodo_fin=None):
         ])
         total += renta.precio
 
-    datos.append(['', '', '', 'TOTAL', f'${total:,.2f}'])
+    datos.append(['', '', '', '', 'TOTAL', f'${total:,.2f}'])
 
-    tabla = Table(datos, colWidths=[150, 130, 80, 90, 90])
+    tabla = Table(datos, colWidths=[130, 35, 110, 70, 80, 80])
     tabla.setStyle(TableStyle([
         (
             'BACKGROUND',
@@ -148,7 +149,8 @@ def generar_pdf_rentas(rentas_qs, periodo_inicio=None, periodo_fin=None):
         ('TEXTCOLOR', (0, -1), (-1, -1), colors.white),
         ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
         ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-        ('ALIGN', (4, 0), (-1, -1), 'RIGHT'),
+        ('ALIGN', (1, 0), (1, -1), 'CENTER'),
+        ('ALIGN', (5, 0), (-1, -1), 'RIGHT'),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
         ('TOPPADDING', (0, 0), (-1, -1), 6),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 6),

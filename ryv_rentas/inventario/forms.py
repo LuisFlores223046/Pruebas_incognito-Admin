@@ -1,6 +1,6 @@
 """Formularios para el módulo de inventario."""
 from django import forms
-from .models import Equipo, Categoria
+from .models import Equipo
 
 
 class EquipoForm(forms.ModelForm):
@@ -10,17 +10,12 @@ class EquipoForm(forms.ModelForm):
         model = Equipo
         fields = [
             'nombre',
-            'categoria',
             'descripcion',
             'cantidad_total',
-            'cantidad_disponible',
-            'estado',
+            'cantidad_en_mantenimiento',
         ]
         widgets = {
             'nombre': forms.TextInput(
-                attrs={'class': 'input-campo'}
-            ),
-            'categoria': forms.Select(
                 attrs={'class': 'input-campo'}
             ),
             'descripcion': forms.Textarea(
@@ -29,32 +24,32 @@ class EquipoForm(forms.ModelForm):
             'cantidad_total': forms.NumberInput(
                 attrs={'class': 'input-campo', 'min': 1}
             ),
-            'cantidad_disponible': forms.NumberInput(
+            'cantidad_en_mantenimiento': forms.NumberInput(
                 attrs={'class': 'input-campo', 'min': 0}
-            ),
-            'estado': forms.Select(
-                attrs={'class': 'input-campo'}
             ),
         }
         labels = {
             'nombre': 'Nombre del equipo',
-            'categoria': 'Categoría',
             'descripcion': 'Descripción',
-            'cantidad_total': 'Cantidad total',
-            'cantidad_disponible': 'Cantidad disponible',
-            'estado': 'Estado',
+            'cantidad_total': 'Cantidad total de unidades',
+            'cantidad_en_mantenimiento': 'Unidades en mantenimiento',
+        }
+        help_texts = {
+            'cantidad_en_mantenimiento': (
+                'Unidades que están fuera de servicio temporalmente.'
+            ),
         }
 
     def clean(self):
-        """Valida que cantidad_disponible no supere cantidad_total."""
+        """Valida que mantenimiento no supere el total."""
         cleaned = super().clean()
         total = cleaned.get('cantidad_total')
-        disponible = cleaned.get('cantidad_disponible')
-        if total is not None and disponible is not None:
-            if disponible > total:
+        mant = cleaned.get('cantidad_en_mantenimiento')
+        if total is not None and mant is not None:
+            if mant >= total:
                 raise forms.ValidationError(
-                    'La cantidad disponible no puede ser mayor '
-                    'a la cantidad total.'
+                    'Las unidades en mantenimiento no pueden ser '
+                    'iguales o mayores a la cantidad total.'
                 )
         return cleaned
 
@@ -84,11 +79,6 @@ class SolicitudEquipoForm(forms.Form):
     # Campos para alta de equipo
     nombre_equipo = forms.CharField(
         label='Nombre del equipo',
-        required=False,
-        widget=forms.TextInput(attrs={'class': 'input-campo'}),
-    )
-    categoria_nombre = forms.CharField(
-        label='Categoría',
         required=False,
         widget=forms.TextInput(attrs={'class': 'input-campo'}),
     )

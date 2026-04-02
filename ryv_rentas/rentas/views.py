@@ -29,7 +29,6 @@ def rentas_activas(request):
             equipo__nombre__icontains=equipo_nombre
         )
 
-    # Ordenar por vencimiento más próximo primero
     rentas = rentas.order_by('fecha_vencimiento')
 
     paginator = Paginator(rentas, 20)
@@ -71,7 +70,7 @@ def detalle_renta(request, pk):
 
 @admin_required
 def nueva_renta(request):
-    """Crea una nueva renta directamente (solo admin). Respeta RN-001."""
+    """Crea una nueva renta directamente (solo admin)."""
     equipo_pk = request.GET.get('equipo')
     equipo_inicial = None
     if equipo_pk:
@@ -84,13 +83,14 @@ def nueva_renta(request):
         if form.is_valid():
             try:
                 equipo = form.cleaned_data['equipo']
+                cantidad = form.cleaned_data.get('cantidad') or 1
 
-                # RN-001: Verificar renta activa única
-                if equipo.tiene_renta_activa():
+                # Verificar disponibilidad
+                if not equipo.tiene_disponibles(cantidad):
                     messages.error(
                         request,
-                        f'El equipo "{equipo.nombre}" ya tiene '
-                        'una renta activa.',
+                        f'Solo hay {equipo.cantidad_disponible} '
+                        f'unidad(es) disponible(s) de "{equipo.nombre}".',
                     )
                     return render(
                         request,
@@ -98,7 +98,6 @@ def nueva_renta(request):
                         {'form': form},
                     )
 
-                # Obtener o crear cliente (RN-005)
                 cliente, _ = Cliente.objects.get_or_create(
                     nombre=form.cleaned_data['cliente_nombre'],
                     telefono=form.cleaned_data['cliente_telefono'],
@@ -116,6 +115,7 @@ def nueva_renta(request):
                     equipo=equipo,
                     cliente=cliente,
                     registrada_por=request.user,
+                    cantidad=cantidad,
                     fecha_inicio=form.cleaned_data['fecha_inicio'],
                     fecha_vencimiento=(
                         form.cleaned_data['fecha_vencimiento']
@@ -125,18 +125,19 @@ def nueva_renta(request):
                     notas=form.cleaned_data.get('notas', ''),
                 )
 
-                # RN-002: marcar equipo como rentado
-                equipo.estado = 'rentado'
+                # RN-002: actualizar contador de unidades en renta
+                equipo.cantidad_en_renta += cantidad
                 equipo.save()
 
                 messages.success(
                     request,
-                    f'Renta creada para "{cliente.nombre}" — '
-                    f'equipo: {equipo.nombre}.',
+                    f'Renta registrada: {cantidad} unidad(es) de '
+                    f'"{equipo.nombre}" para {cliente.nombre}.',
                 )
-                return redirect('rentas:detalle', pk=renta.pk)
+                # Redirigir a rentas activas
+                return redirect('rentas:lista')
 
-            except Exception:
+            except Exception as e:
                 messages.error(
                     request,
                     'Ocurrió un error al crear la renta. '
@@ -153,7 +154,7 @@ def nueva_renta(request):
 
 @admin_required
 def finalizar_renta(request, pk):
-    """Finaliza una renta y libera el equipo (solo admin). RN-003."""
+    """Finaliza una renta y libera las unidades del equipo (admin). RN-003."""
     renta = get_object_or_404(Renta, pk=pk, estado='activa')
 
     if request.method == 'POST':
@@ -175,14 +176,18 @@ def finalizar_renta(request, pk):
                     )
                 renta.save()
 
-                # RN-003: liberar equipo
-                renta.equipo.estado = 'disponible'
-                renta.equipo.save()
+                # RN-003: liberar unidades
+                equipo = renta.equipo
+                equipo.cantidad_en_renta = max(
+                    0, equipo.cantidad_en_renta - renta.cantidad
+                )
+                equipo.save()
 
                 messages.success(
                     request,
-                    f'Renta finalizada. Equipo '
-                    f'"{renta.equipo.nombre}" marcado disponible.',
+                    f'Renta finalizada. {renta.cantidad} unidad(es) de '
+                    f'"{equipo.nombre}" liberada(s). '
+                    f'Disponibles ahora: {equipo.cantidad_disponible}.',
                 )
                 return redirect('historial:detalle', pk=renta.pk)
 
@@ -205,6 +210,7 @@ def solicitar_renta(request):
         form = SolicitudRentaForm(request.POST)
         if form.is_valid():
             equipo = form.cleaned_data['equipo']
+            cantidad = form.cleaned_data.get('cantidad') or 1
             datos_json = {
                 'cliente_nombre': (
                     form.cleaned_data['cliente_nombre']
@@ -218,6 +224,7 @@ def solicitar_renta(request):
                 'cliente_correo': form.cleaned_data.get(
                     'cliente_correo', ''
                 ),
+                'cantidad': cantidad,
                 'fecha_inicio': str(
                     form.cleaned_data['fecha_inicio']
                 ),

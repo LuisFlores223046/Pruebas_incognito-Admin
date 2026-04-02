@@ -33,7 +33,7 @@ def generar_inventario(request):
         try:
             equipos = Equipo.objects.filter(
                 activo=True
-            ).select_related('categoria').order_by('nombre')
+            ).order_by('nombre')
 
             pdf_bytes = generar_pdf_inventario(equipos)
 
@@ -131,7 +131,7 @@ def descargar_pdf(request, pk):
         if reporte.tipo == 'inventario':
             equipos = Equipo.objects.filter(
                 activo=True
-            ).select_related('categoria').order_by('nombre')
+            ).order_by('nombre')
             pdf_bytes = generar_pdf_inventario(equipos)
         else:
             rentas = Renta.objects.filter(

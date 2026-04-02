@@ -21,8 +21,8 @@
             <dd class="detalle-valor">
                 <a href="{% url 'inventario:detalle' renta.equipo.pk %}">{{ renta.equipo.nombre }}</a>
             </dd>
-            <dt class="detalle-etiqueta">Categoría</dt>
-            <dd class="detalle-valor">{{ renta.equipo.categoria.nombre|default:"—" }}</dd>
+            <dt class="detalle-etiqueta">Cantidad rentada</dt>
+            <dd class="detalle-valor">{{ renta.cantidad }} unidad(es)</dd>
         </dl>
     </section>
 

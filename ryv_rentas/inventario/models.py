@@ -2,46 +2,15 @@
 from django.db import models
 
 
-class Categoria(models.Model):
-    """Categoría de equipos (ej: Herramienta eléctrica, Maquinaria)."""
-
-    nombre = models.CharField(
-        max_length=100,
-        verbose_name='nombre',
-    )
-
-    class Meta:
-        verbose_name = 'categoría'
-        verbose_name_plural = 'categorías'
-        ordering = ['nombre']
-
-    def __str__(self):
-        """Representación en texto de la categoría."""
-        return self.nombre
-
-
 class Equipo(models.Model):
     """
     Equipo o herramienta disponible para renta.
-    Gestiona disponibilidad y estado operativo.
+    Gestiona disponibilidad por cantidades granulares.
     """
 
-    ESTADO_CHOICES = [
-        ('disponible', 'Disponible'),
-        ('rentado', 'Rentado'),
-        ('mantenimiento', 'Mantenimiento'),
-    ]
     nombre = models.CharField(
         max_length=200,
         verbose_name='nombre',
-    )
-    categoria = models.ForeignKey(
-        Categoria,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='equipos',
-        verbose_name='categoría',
     )
     descripcion = models.TextField(
         blank=True,
@@ -51,15 +20,13 @@ class Equipo(models.Model):
         default=1,
         verbose_name='cantidad total',
     )
-    cantidad_disponible = models.PositiveIntegerField(
-        default=1,
-        verbose_name='cantidad disponible',
+    cantidad_en_renta = models.PositiveIntegerField(
+        default=0,
+        verbose_name='en renta',
     )
-    estado = models.CharField(
-        max_length=20,
-        choices=ESTADO_CHOICES,
-        default='disponible',
-        verbose_name='estado',
+    cantidad_en_mantenimiento = models.PositiveIntegerField(
+        default=0,
+        verbose_name='en mantenimiento',
     )
     activo = models.BooleanField(
         default=True,
@@ -79,6 +46,45 @@ class Equipo(models.Model):
         """Representación en texto del equipo."""
         return self.nombre
 
+    @property
+    def cantidad_disponible(self):
+        """Unidades disponibles para renta (calculado)."""
+        return max(
+            0,
+            self.cantidad_total
+            - self.cantidad_en_renta
+            - self.cantidad_en_mantenimiento,
+        )
+
+    @property
+    def estado(self):
+        """
+        Estado derivado del equipo para visualización.
+        Puede ser: disponible, parcial, rentado, mantenimiento.
+        """
+        disp = self.cantidad_disponible
+        if disp == self.cantidad_total:
+            return 'disponible'
+        if disp > 0:
+            return 'parcial'
+        if self.cantidad_en_renta > 0:
+            return 'rentado'
+        return 'mantenimiento'
+
+    def get_estado_display(self):
+        """Texto del estado para mostrar en templates."""
+        mapa = {
+            'disponible': 'Disponible',
+            'parcial': 'Parcialmente disponible',
+            'rentado': 'Todo rentado',
+            'mantenimiento': 'En mantenimiento',
+        }
+        return mapa.get(self.estado, self.estado.capitalize())
+
     def tiene_renta_activa(self):
-        """Retorna True si el equipo tiene al menos una renta activa."""
-        return self.rentas.filter(estado='activa').exists()
+        """True si hay al menos una unidad en renta activa."""
+        return self.cantidad_en_renta > 0
+
+    def tiene_disponibles(self, cantidad=1):
+        """True si hay suficientes unidades disponibles."""
+        return self.cantidad_disponible >= cantidad

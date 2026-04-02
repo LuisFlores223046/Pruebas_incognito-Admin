@@ -11,6 +11,7 @@
         {% else %}
             <a href="{% url 'inventario:solicitar' %}" class="btn-secundario">Solicitar alta de equipo</a>
         {% endif %}
+        <a href="{% url 'inventario:disponibles' %}" class="btn-secundario">Ver disponibles</a>
     </div>
 </div>
 
@@ -19,24 +20,6 @@
         <div class="filtros-campo">
             <label for="id-filtro-nombre" class="filtros-etiqueta">Nombre</label>
             <input type="text" id="id-filtro-nombre" name="nombre" value="{{ filtro_nombre }}" class="input-campo" placeholder="Buscar equipo...">
-        </div>
-        <div class="filtros-campo">
-            <label for="id-filtro-categoria" class="filtros-etiqueta">Categoría</label>
-            <select id="id-filtro-categoria" name="categoria" class="input-campo">
-                <option value="">Todas</option>
-                {% for cat in categorias %}
-                <option value="{{ cat.pk }}" {% if filtro_categoria == cat.pk|stringformat:"s" %}selected{% endif %}>{{ cat.nombre }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="filtros-campo">
-            <label for="id-filtro-estado" class="filtros-etiqueta">Estado</label>
-            <select id="id-filtro-estado" name="estado" class="input-campo">
-                <option value="">Todos</option>
-                {% for valor, etiqueta in estados %}
-                <option value="{{ valor }}" {% if filtro_estado == valor %}selected{% endif %}>{{ etiqueta }}</option>
-                {% endfor %}
-            </select>
         </div>
         <div class="filtros-acciones">
             <button type="submit" class="btn-primario">Filtrar</button>
@@ -51,10 +34,10 @@
         <thead>
             <tr>
                 <th scope="col">Equipo</th>
-                <th scope="col">Categoría</th>
-                <th scope="col">Estado</th>
-                <th scope="col">Disponibles</th>
                 <th scope="col">Total</th>
+                <th scope="col">En renta</th>
+                <th scope="col">Mantenimiento</th>
+                <th scope="col">Disponible</th>
                 <th scope="col">Acciones</th>
             </tr>
         </thead>
@@ -64,22 +47,34 @@
                 <td class="tabla-celda">
                     <a href="{% url 'inventario:detalle' equipo.pk %}" class="enlace-equipo">{{ equipo.nombre }}</a>
                 </td>
-                <td class="tabla-celda">{{ equipo.categoria.nombre|default:"—" }}</td>
-                <td class="tabla-celda">
-                    <span class="badge-estado badge-estado--{{ equipo.estado }}">{{ equipo.get_estado_display }}</span>
-                </td>
-                <td class="tabla-celda tabla-celda--centrado">{{ equipo.cantidad_disponible }}</td>
                 <td class="tabla-celda tabla-celda--centrado">{{ equipo.cantidad_total }}</td>
+                <td class="tabla-celda tabla-celda--centrado">
+                    {% if equipo.cantidad_en_renta > 0 %}
+                        <span class="badge-numero badge-numero--renta">{{ equipo.cantidad_en_renta }}</span>
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td class="tabla-celda tabla-celda--centrado">
+                    {% if equipo.cantidad_en_mantenimiento > 0 %}
+                        <span class="badge-numero badge-numero--mant">{{ equipo.cantidad_en_mantenimiento }}</span>
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td class="tabla-celda tabla-celda--centrado">
+                    <span class="badge-estado badge-estado--{{ equipo.estado }}">{{ equipo.cantidad_disponible }}</span>
+                </td>
                 <td class="tabla-celda tabla-celda--acciones">
                     <a href="{% url 'inventario:detalle' equipo.pk %}" class="btn-tabla btn-tabla--ver">Ver</a>
                     {% if request.user.es_administrador %}
                         <a href="{% url 'inventario:editar' equipo.pk %}" class="btn-tabla btn-tabla--editar">Editar</a>
-                        {% if equipo.estado == 'disponible' %}
+                        {% if equipo.cantidad_disponible > 0 %}
                         <a href="{% url 'rentas:nueva' %}?equipo={{ equipo.pk }}" class="btn-tabla btn-tabla--rentar">Rentar</a>
                         {% endif %}
                     {% else %}
                         <a href="{% url 'inventario:solicitar' %}?equipo={{ equipo.pk }}" class="btn-tabla btn-tabla--solicitar">Solicitar cambio</a>
-                        {% if equipo.estado == 'disponible' %}
+                        {% if equipo.cantidad_disponible > 0 %}
                         <a href="{% url 'rentas:solicitar' %}?equipo={{ equipo.pk }}" class="btn-tabla btn-tabla--rentar">Solicitar renta</a>
                         {% endif %}
                     {% endif %}

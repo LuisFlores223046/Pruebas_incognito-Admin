@@ -11,45 +11,44 @@ def ejecutar_solicitud(solicitud):
     - alta_equipo: crea un nuevo Equipo
     - edicion_equipo: edita campos del Equipo
     - baja_equipo: desactiva el Equipo (si no tiene renta activa)
-    - nueva_renta: crea una nueva Renta y actualiza estado del equipo
-    - cierre_renta: finaliza la Renta y libera el equipo
+    - nueva_renta: crea una nueva Renta y actualiza contador
+    - cierre_renta: finaliza la Renta y libera unidades
     """
-    from inventario.models import Equipo, Categoria
+    from inventario.models import Equipo
     from rentas.models import Renta, Cliente
 
     datos = solicitud.datos_json or {}
 
     if solicitud.tipo == 'alta_equipo':
-        categoria, _ = Categoria.objects.get_or_create(
-            nombre=datos.get('categoria', 'General')
-        )
         Equipo.objects.create(
             nombre=datos['nombre'],
-            categoria=categoria,
             descripcion=datos.get('descripcion', ''),
             cantidad_total=datos.get('cantidad_total', 1),
-            cantidad_disponible=datos.get('cantidad_total', 1),
         )
 
     elif solicitud.tipo == 'edicion_equipo':
         equipo = solicitud.equipo
+        campos_permitidos = {
+            'nombre', 'descripcion',
+            'cantidad_total', 'cantidad_en_mantenimiento',
+        }
         if equipo:
             for campo, valor in datos.items():
-                if hasattr(equipo, campo):
+                if campo in campos_permitidos:
                     setattr(equipo, campo, valor)
             equipo.save()
 
     elif solicitud.tipo == 'baja_equipo':
         equipo = solicitud.equipo
         if equipo:
-            # RN-006: no dar de baja con renta activa
             if not equipo.tiene_renta_activa():
                 equipo.activo = False
                 equipo.save()
             else:
                 raise ValueError(
-                    f'El equipo "{equipo.nombre}" tiene una renta '
-                    'activa y no puede darse de baja.'
+                    f'El equipo "{equipo.nombre}" tiene '
+                    f'{equipo.cantidad_en_renta} unidad(es) en renta '
+                    'y no puede darse de baja.'
                 )
 
     elif solicitud.tipo == 'nueva_renta':
@@ -62,19 +61,26 @@ def ejecutar_solicitud(solicitud):
             },
         )
         equipo = solicitud.equipo
+        cantidad = int(datos.get('cantidad', 1))
         if equipo:
-            renta = Renta.objects.create(
+            if not equipo.tiene_disponibles(cantidad):
+                raise ValueError(
+                    f'No hay suficientes unidades disponibles '
+                    f'de "{equipo.nombre}".'
+                )
+            Renta.objects.create(
                 equipo=equipo,
                 cliente=cliente,
                 registrada_por=solicitud.solicitante,
+                cantidad=cantidad,
                 fecha_inicio=datos['fecha_inicio'],
                 fecha_vencimiento=datos['fecha_vencimiento'],
                 precio=datos['precio'],
                 deposito=datos.get('deposito', 0),
                 notas=datos.get('notas', ''),
             )
-            # RN-002: marcar equipo como rentado
-            equipo.estado = 'rentado'
+            # RN-002: actualizar contador de renta
+            equipo.cantidad_en_renta += cantidad
             equipo.save()
 
     elif solicitud.tipo == 'cierre_renta':
@@ -84,9 +90,12 @@ def ejecutar_solicitud(solicitud):
             renta.estado = 'finalizada'
             renta.fecha_devolucion = date.today()
             renta.save()
-            # RN-003: liberar equipo
-            renta.equipo.estado = 'disponible'
-            renta.equipo.save()
+            # RN-003: liberar unidades
+            equipo = renta.equipo
+            equipo.cantidad_en_renta = max(
+                0, equipo.cantidad_en_renta - renta.cantidad
+            )
+            equipo.save()
 
     solicitud.estado = 'aprobada'
     solicitud.fecha_resolucion = timezone.now()

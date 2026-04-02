@@ -93,6 +93,10 @@ class Renta(models.Model):
         default=0,
         verbose_name='depósito (MXN)',
     )
+    cantidad = models.PositiveIntegerField(
+        default=1,
+        verbose_name='cantidad',
+    )
     estado = models.CharField(
         max_length=20,
         choices=ESTADO_CHOICES,

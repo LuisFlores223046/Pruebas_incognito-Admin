@@ -39,10 +39,10 @@
         <thead>
             <tr>
                 <th scope="col">Equipo</th>
+                <th scope="col">Cantidad</th>
                 <th scope="col">Cliente</th>
                 <th scope="col">Inicio</th>
                 <th scope="col">Vencimiento</th>
-                <th scope="col">Estado</th>
                 <th scope="col">Precio</th>
                 <th scope="col">Acciones</th>
             </tr>
@@ -54,6 +54,7 @@
                 {% elif renta.esta_por_vencer %}tabla-fila--por-vencer
                 {% endif %}">
                 <td class="tabla-celda">{{ renta.equipo.nombre }}</td>
+                <td class="tabla-celda tabla-celda--centrado">{{ renta.cantidad }}</td>
                 <td class="tabla-celda">{{ renta.cliente.nombre }}</td>
                 <td class="tabla-celda">{{ renta.fecha_inicio }}</td>
                 <td class="tabla-celda">
@@ -65,9 +66,6 @@
                             {{ renta.dias_para_vencer }} día{% if renta.dias_para_vencer != 1 %}s{% endif %}
                         </span>
                     {% endif %}
-                </td>
-                <td class="tabla-celda">
-                    <span class="badge-estado badge-estado--{{ renta.estado }}">{{ renta.get_estado_display }}</span>
                 </td>
                 <td class="tabla-celda tabla-celda--monto">${{ renta.precio }}</td>
                 <td class="tabla-celda tabla-celda--acciones">

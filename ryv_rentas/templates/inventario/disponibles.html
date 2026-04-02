@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Equipos disponibles — RYV Rentas{% endblock %}
+
+{% block content %}
+<div class="pagina-encabezado">
+    <h1 class="pagina-titulo">Equipos disponibles para renta</h1>
+    <div class="pagina-acciones">
+        <a href="{% url 'inventario:lista' %}" class="btn-secundario">Ver inventario completo</a>
+    </div>
+</div>
+
+<section class="filtros-seccion">
+    <form method="get" class="filtros-formulario">
+        <div class="filtros-campo">
+            <label for="id-filtro-nombre" class="filtros-etiqueta">Nombre</label>
+            <input type="text" id="id-filtro-nombre" name="nombre" value="{{ filtro_nombre }}"
+                   class="input-campo" placeholder="Buscar equipo...">
+        </div>
+        <div class="filtros-acciones">
+            <button type="submit" class="btn-primario">Filtrar</button>
+            <a href="{% url 'inventario:disponibles' %}" class="btn-secundario">Limpiar</a>
+        </div>
+    </form>
+</section>
+
+{% if equipos %}
+<div class="tabla-contenedor">
+    <table class="tabla-inventario">
+        <thead>
+            <tr>
+                <th scope="col">Equipo</th>
+                <th scope="col">Descripción</th>
+                <th scope="col">Disponibles</th>
+                <th scope="col">Total</th>
+                <th scope="col">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for equipo in equipos %}
+            <tr class="tabla-fila tabla-fila--disponible">
+                <td class="tabla-celda">
+                    <a href="{% url 'inventario:detalle' equipo.pk %}" class="enlace-equipo">{{ equipo.nombre }}</a>
+                </td>
+                <td class="tabla-celda">{{ equipo.descripcion|default:"—"|truncatechars:60 }}</td>
+                <td class="tabla-celda tabla-celda--centrado">
+                    <span class="badge-estado badge-estado--disponible">{{ equipo.cantidad_disponible }}</span>
+                </td>
+                <td class="tabla-celda tabla-celda--centrado">{{ equipo.cantidad_total }}</td>
+                <td class="tabla-celda tabla-celda--acciones">
+                    {% if request.user.es_administrador %}
+                        <a href="{% url 'rentas:nueva' %}?equipo={{ equipo.pk }}" class="btn-tabla btn-tabla--rentar">Rentar</a>
+                    {% else %}
+                        <a href="{% url 'rentas:solicitar' %}?equipo={{ equipo.pk }}" class="btn-tabla btn-tabla--rentar">Solicitar renta</a>
+                    {% endif %}
+                    <a href="{% url 'inventario:detalle' equipo.pk %}" class="btn-tabla btn-tabla--ver">Ver detalle</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% include "components/_pagination.html" with page_obj=equipos %}
+{% else %}
+<div class="estado-vacio">
+    <p class="estado-vacio-mensaje">No hay equipos disponibles en este momento.</p>
+    <a href="{% url 'inventario:lista' %}" class="btn-secundario">Ver inventario completo</a>
+</div>
+{% endif %}
+{% endblock %}

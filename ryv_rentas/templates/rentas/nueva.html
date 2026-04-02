@@ -61,6 +61,14 @@
                 {% for error in form.equipo.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
             </div>
 
+            <div class="campo-grupo{% if form.cantidad.errors %} campo-grupo--error{% endif %}">
+                <label for="{{ form.cantidad.id_for_label }}" class="campo-etiqueta">
+                    {{ form.cantidad.label }} <span class="campo-requerido">*</span>
+                </label>
+                {{ form.cantidad }}
+                {% for error in form.cantidad.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
+            </div>
+
             <div class="campo-grupo{% if form.fecha_inicio.errors %} campo-grupo--error{% endif %}">
                 <label for="{{ form.fecha_inicio.id_for_label }}" class="campo-etiqueta">
                     {{ form.fecha_inicio.label }} <span class="campo-requerido">*</span>

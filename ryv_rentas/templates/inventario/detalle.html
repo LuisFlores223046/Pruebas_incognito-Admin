@@ -37,16 +37,18 @@
         <dl class="detalle-lista">
             <dt class="detalle-etiqueta">Nombre</dt>
             <dd class="detalle-valor">{{ equipo.nombre }}</dd>
-            <dt class="detalle-etiqueta">Categoría</dt>
-            <dd class="detalle-valor">{{ equipo.categoria.nombre|default:"Sin categoría" }}</dd>
             <dt class="detalle-etiqueta">Estado</dt>
             <dd class="detalle-valor">
                 <span class="badge-estado badge-estado--{{ equipo.estado }}">{{ equipo.get_estado_display }}</span>
             </dd>
-            <dt class="detalle-etiqueta">Cantidad total</dt>
+            <dt class="detalle-etiqueta">Total de unidades</dt>
             <dd class="detalle-valor">{{ equipo.cantidad_total }}</dd>
-            <dt class="detalle-etiqueta">Cantidad disponible</dt>
-            <dd class="detalle-valor">{{ equipo.cantidad_disponible }}</dd>
+            <dt class="detalle-etiqueta">En renta</dt>
+            <dd class="detalle-valor">{{ equipo.cantidad_en_renta }}</dd>
+            <dt class="detalle-etiqueta">En mantenimiento</dt>
+            <dd class="detalle-valor">{{ equipo.cantidad_en_mantenimiento }}</dd>
+            <dt class="detalle-etiqueta">Disponibles</dt>
+            <dd class="detalle-valor"><strong>{{ equipo.cantidad_disponible }}</strong></dd>
             <dt class="detalle-etiqueta">Fecha de registro</dt>
             <dd class="detalle-valor">{{ equipo.fecha_registro|date:"d/m/Y H:i" }}</dd>
             {% if equipo.descripcion %}
@@ -58,11 +60,12 @@
 
     {% if rentas_activas %}
     <section class="detalle-seccion">
-        <h2 class="detalle-seccion-titulo">Renta activa</h2>
+        <h2 class="detalle-seccion-titulo">Rentas activas ({{ rentas_activas|length }})</h2>
         {% for renta in rentas_activas %}
         <div class="renta-activa-tarjeta">
             <p><strong>Cliente:</strong> {{ renta.cliente.nombre }}</p>
             <p><strong>Teléfono:</strong> {{ renta.cliente.telefono }}</p>
+            <p><strong>Cantidad:</strong> {{ renta.cantidad }} unidad(es)</p>
             <p><strong>Vencimiento:</strong> {{ renta.fecha_vencimiento }}</p>
             <a href="{% url 'rentas:detalle' renta.pk %}" class="btn-secundario">Ver renta</a>
         </div>
@@ -70,7 +73,7 @@
     </section>
     {% endif %}
 
-    {% if equipo.estado == 'disponible' %}
+    {% if equipo.cantidad_disponible > 0 %}
     <section class="detalle-seccion detalle-seccion--accion">
         {% if request.user.es_administrador %}
             <a href="{% url 'rentas:nueva' %}?equipo={{ equipo.pk }}" class="btn-primario">Registrar renta</a>
