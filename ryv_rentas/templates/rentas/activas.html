@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Rentas activas — RYV Rentas{% endblock %}
+
+{% block content %}
+<div class="pagina-encabezado">
+    <h1 class="pagina-titulo">Rentas activas</h1>
+    <div class="pagina-acciones">
+        {% if request.user.es_administrador %}
+            <a href="{% url 'rentas:nueva' %}" class="btn-primario">+ Nueva renta</a>
+        {% else %}
+            <a href="{% url 'rentas:solicitar' %}" class="btn-secundario">Solicitar renta</a>
+        {% endif %}
+    </div>
+</div>
+
+<section class="filtros-seccion">
+    <form method="get" class="filtros-formulario">
+        <div class="filtros-campo">
+            <label for="id-filtro-cliente" class="filtros-etiqueta">Cliente</label>
+            <input type="text" id="id-filtro-cliente" name="cliente" value="{{ filtro_cliente }}"
+                   class="input-campo" placeholder="Buscar cliente...">
+        </div>
+        <div class="filtros-campo">
+            <label for="id-filtro-equipo" class="filtros-etiqueta">Equipo</label>
+            <input type="text" id="id-filtro-equipo" name="equipo" value="{{ filtro_equipo }}"
+                   class="input-campo" placeholder="Buscar equipo...">
+        </div>
+        <div class="filtros-acciones">
+            <button type="submit" class="btn-primario">Filtrar</button>
+            <a href="{% url 'rentas:lista' %}" class="btn-secundario">Limpiar</a>
+        </div>
+    </form>
+</section>
+
+{% if rentas %}
+<div class="tabla-contenedor">
+    <table class="tabla-rentas">
+        <thead>
+            <tr>
+                <th scope="col">Equipo</th>
+                <th scope="col">Cliente</th>
+                <th scope="col">Inicio</th>
+                <th scope="col">Vencimiento</th>
+                <th scope="col">Estado</th>
+                <th scope="col">Precio</th>
+                <th scope="col">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for renta in rentas %}
+            <tr class="tabla-fila
+                {% if renta.esta_vencida_sin_cerrar %}tabla-fila--vencida
+                {% elif renta.esta_por_vencer %}tabla-fila--por-vencer
+                {% endif %}">
+                <td class="tabla-celda">{{ renta.equipo.nombre }}</td>
+                <td class="tabla-celda">{{ renta.cliente.nombre }}</td>
+                <td class="tabla-celda">{{ renta.fecha_inicio }}</td>
+                <td class="tabla-celda">
+                    {{ renta.fecha_vencimiento }}
+                    {% if renta.esta_vencida_sin_cerrar %}
+                        <span class="badge-vencimiento badge-vencimiento--vencida">Vencida</span>
+                    {% elif renta.esta_por_vencer %}
+                        <span class="badge-vencimiento badge-vencimiento--proxima">
+                            {{ renta.dias_para_vencer }} día{% if renta.dias_para_vencer != 1 %}s{% endif %}
+                        </span>
+                    {% endif %}
+                </td>
+                <td class="tabla-celda">
+                    <span class="badge-estado badge-estado--{{ renta.estado }}">{{ renta.get_estado_display }}</span>
+                </td>
+                <td class="tabla-celda tabla-celda--monto">${{ renta.precio }}</td>
+                <td class="tabla-celda tabla-celda--acciones">
+                    <a href="{% url 'rentas:detalle' renta.pk %}" class="btn-tabla btn-tabla--ver">Ver</a>
+                    {% if request.user.es_administrador %}
+                        <form method="post" action="{% url 'rentas:finalizar' renta.pk %}" class="form-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="confirmacion" value="on">
+                            <button type="submit" class="btn-tabla btn-tabla--finalizar"
+                                    data-confirmar="¿Finalizar la renta de {{ renta.equipo.nombre }} para {{ renta.cliente.nombre }}?">
+                                Finalizar
+                            </button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'rentas:solicitar_cierre' renta.pk %}" class="btn-tabla btn-tabla--solicitar">
+                            Solicitar cierre
+                        </a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% include "components/_pagination.html" with page_obj=rentas %}
+{% else %}
+<div class="estado-vacio">
+    <p class="estado-vacio-mensaje">No hay rentas activas{% if filtro_cliente or filtro_equipo %} con esos filtros{% endif %}.</p>
+    {% if request.user.es_administrador %}
+        <a href="{% url 'rentas:nueva' %}" class="btn-primario">Registrar primera renta</a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

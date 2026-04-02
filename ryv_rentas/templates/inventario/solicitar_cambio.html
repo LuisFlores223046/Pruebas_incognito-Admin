@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Solicitar cambio — Inventario{% endblock %}
+
+{% block content %}
+<div class="pagina-encabezado">
+    <a href="{% url 'inventario:lista' %}" class="enlace-volver">&larr; Volver al inventario</a>
+    <h1 class="pagina-titulo">Solicitar cambio en inventario</h1>
+</div>
+
+<p class="pagina-descripcion">
+    Como empleado, no puedes modificar el inventario directamente.
+    Envía una solicitud y el administrador la revisará.
+</p>
+
+{% if equipo %}
+<div class="contexto-equipo">
+    <strong>Equipo referenciado:</strong> {{ equipo.nombre }} ({{ equipo.get_estado_display }})
+</div>
+{% endif %}
+
+<div class="formulario-contenedor">
+    <form method="post" class="formulario" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="campo-errores-globales">
+            {% for error in form.non_field_errors %}
+            <p class="campo-error">{{ error }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="campo-grupo{% if form.tipo.errors %} campo-grupo--error{% endif %}">
+            <label for="{{ form.tipo.id_for_label }}" class="campo-etiqueta">
+                {{ form.tipo.label }} <span class="campo-requerido">*</span>
+            </label>
+            {{ form.tipo }}
+            {% for error in form.tipo.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
+        </div>
+
+        <div class="campo-grupo{% if form.comentario.errors %} campo-grupo--error{% endif %}">
+            <label for="{{ form.comentario.id_for_label }}" class="campo-etiqueta">
+                {{ form.comentario.label }} <span class="campo-requerido">*</span>
+            </label>
+            {{ form.comentario }}
+            {% for error in form.comentario.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
+        </div>
+
+        <details class="formulario-detalles">
+            <summary class="formulario-detalles-titulo">Datos adicionales (solo para alta de equipo)</summary>
+            <div class="formulario-detalles-contenido">
+                <div class="campo-grupo">
+                    <label for="{{ form.nombre_equipo.id_for_label }}" class="campo-etiqueta">{{ form.nombre_equipo.label }}</label>
+                    {{ form.nombre_equipo }}
+                </div>
+                <div class="campo-grupo">
+                    <label for="{{ form.categoria_nombre.id_for_label }}" class="campo-etiqueta">{{ form.categoria_nombre.label }}</label>
+                    {{ form.categoria_nombre }}
+                </div>
+                <div class="campo-grupo">
+                    <label for="{{ form.descripcion_equipo.id_for_label }}" class="campo-etiqueta">{{ form.descripcion_equipo.label }}</label>
+                    {{ form.descripcion_equipo }}
+                </div>
+                <div class="campo-grupo">
+                    <label for="{{ form.cantidad_total.id_for_label }}" class="campo-etiqueta">{{ form.cantidad_total.label }}</label>
+                    {{ form.cantidad_total }}
+                </div>
+            </div>
+        </details>
+
+        <div class="formulario-acciones">
+            <button type="submit" class="btn-primario">Enviar solicitud</button>
+            <a href="{% url 'inventario:lista' %}" class="btn-secundario">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

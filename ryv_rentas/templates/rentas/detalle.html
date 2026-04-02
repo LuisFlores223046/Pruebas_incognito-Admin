@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}Renta #{{ renta.pk }} — RYV Rentas{% endblock %}
+
+{% block content %}
+<div class="pagina-encabezado">
+    <div class="encabezado-izquierda">
+        <a href="{% url 'rentas:lista' %}" class="enlace-volver">&larr; Volver a rentas activas</a>
+        <h1 class="pagina-titulo">
+            Renta #{{ renta.pk }}
+            <span class="badge-estado badge-estado--{{ renta.estado }}">{{ renta.get_estado_display }}</span>
+        </h1>
+    </div>
+    <div class="pagina-acciones">
+        {% if renta.estado == 'activa' %}
+            {% if request.user.es_administrador %}
+                <a href="#form-finalizar" class="btn-primario">Finalizar renta</a>
+            {% else %}
+                <a href="{% url 'rentas:solicitar_cierre' renta.pk %}" class="btn-secundario">Solicitar cierre</a>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+{% if renta.esta_vencida_sin_cerrar %}
+<div class="alerta-vencida" role="alert">
+    <strong>Esta renta venció el {{ renta.fecha_vencimiento }}.</strong>
+    Favor de gestionarla con el administrador.
+</div>
+{% elif renta.esta_por_vencer %}
+<div class="alerta-por-vencer" role="alert">
+    Vence en <strong>{{ renta.dias_para_vencer }} día{% if renta.dias_para_vencer != 1 %}s{% endif %}</strong>
+    ({{ renta.fecha_vencimiento }}).
+</div>
+{% endif %}
+
+{% if solicitar_cierre %}
+<div class="formulario-contenedor">
+    <h2 class="formulario-titulo">Solicitar cierre de renta</h2>
+    <form method="post" action="{% url 'rentas:solicitar_cierre' renta.pk %}" class="formulario">
+        {% csrf_token %}
+        <div class="campo-grupo">
+            <label for="id-comentario" class="campo-etiqueta">Comentario para el administrador</label>
+            <textarea id="id-comentario" name="comentario" class="input-campo" rows="3"
+                      placeholder="Describe el motivo del cierre..."></textarea>
+        </div>
+        <div class="formulario-acciones">
+            <button type="submit" class="btn-primario">Enviar solicitud</button>
+            <a href="{% url 'rentas:detalle' renta.pk %}" class="btn-secundario">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% else %}
+<div class="detalle-contenedor">
+    <section class="detalle-seccion">
+        <h2 class="detalle-seccion-titulo">Equipo rentado</h2>
+        <dl class="detalle-lista">
+            <dt class="detalle-etiqueta">Equipo</dt>
+            <dd class="detalle-valor">
+                <a href="{% url 'inventario:detalle' renta.equipo.pk %}">{{ renta.equipo.nombre }}</a>
+            </dd>
+            <dt class="detalle-etiqueta">Categoría</dt>
+            <dd class="detalle-valor">{{ renta.equipo.categoria.nombre|default:"—" }}</dd>
+        </dl>
+    </section>
+
+    <section class="detalle-seccion">
+        <h2 class="detalle-seccion-titulo">Datos del cliente</h2>
+        <dl class="detalle-lista">
+            <dt class="detalle-etiqueta">Nombre</dt>
+            <dd class="detalle-valor">{{ renta.cliente.nombre }}</dd>
+            <dt class="detalle-etiqueta">Teléfono</dt>
+            <dd class="detalle-valor">{{ renta.cliente.telefono }}</dd>
+            {% if renta.cliente.direccion %}
+            <dt class="detalle-etiqueta">Dirección</dt>
+            <dd class="detalle-valor">{{ renta.cliente.direccion }}</dd>
+            {% endif %}
+            {% if renta.cliente.correo %}
+            <dt class="detalle-etiqueta">Correo</dt>
+            <dd class="detalle-valor">{{ renta.cliente.correo }}</dd>
+            {% endif %}
+        </dl>
+    </section>
+
+    <section class="detalle-seccion">
+        <h2 class="detalle-seccion-titulo">Datos de la renta</h2>
+        <dl class="detalle-lista">
+            <dt class="detalle-etiqueta">Fecha de inicio</dt>
+            <dd class="detalle-valor">{{ renta.fecha_inicio }}</dd>
+            <dt class="detalle-etiqueta">Fecha de vencimiento</dt>
+            <dd class="detalle-valor">{{ renta.fecha_vencimiento }}</dd>
+            {% if renta.fecha_devolucion %}
+            <dt class="detalle-etiqueta">Fecha de devolución</dt>
+            <dd class="detalle-valor">{{ renta.fecha_devolucion }}</dd>
+            {% endif %}
+            <dt class="detalle-etiqueta">Precio</dt>
+            <dd class="detalle-valor detalle-valor--monto">${{ renta.precio }}</dd>
+            <dt class="detalle-etiqueta">Depósito</dt>
+            <dd class="detalle-valor detalle-valor--monto">${{ renta.deposito }}</dd>
+            <dt class="detalle-etiqueta">Registrada por</dt>
+            <dd class="detalle-valor">{{ renta.registrada_por.get_full_name|default:renta.registrada_por.username|default:"—" }}</dd>
+            <dt class="detalle-etiqueta">Creada el</dt>
+            <dd class="detalle-valor">{{ renta.created_at|date:"d/m/Y H:i" }}</dd>
+            {% if renta.notas %}
+            <dt class="detalle-etiqueta">Notas</dt>
+            <dd class="detalle-valor">{{ renta.notas }}</dd>
+            {% endif %}
+        </dl>
+    </section>
+
+    {% if renta.estado == 'activa' and request.user.es_administrador and form_finalizar %}
+    <section class="detalle-seccion" id="form-finalizar">
+        <h2 class="detalle-seccion-titulo">Finalizar renta</h2>
+        <form method="post" action="{% url 'rentas:finalizar' renta.pk %}" class="formulario">
+            {% csrf_token %}
+            <div class="campo-grupo">
+                <label class="campo-etiqueta checkbox-etiqueta">
+                    <input type="checkbox" name="confirmacion" required class="input-checkbox">
+                    Confirmo que el equipo fue devuelto.
+                </label>
+            </div>
+            <div class="campo-grupo">
+                <label for="id-notas-devolucion" class="campo-etiqueta">Notas de devolución (opcional)</label>
+                <textarea id="id-notas-devolucion" name="notas_devolucion" class="input-campo" rows="2"></textarea>
+            </div>
+            <div class="formulario-acciones">
+                <button type="submit" class="btn-primario"
+                        data-confirmar="¿Confirmar la devolución del equipo {{ renta.equipo.nombre }}?">
+                    Confirmar devolución
+                </button>
+            </div>
+        </form>
+    </section>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

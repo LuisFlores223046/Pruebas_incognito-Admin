@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Usuarios — Panel Admin{% endblock %}
+
+{% block content %}
+<div class="pagina-encabezado">
+    <h1 class="pagina-titulo">Usuarios del sistema</h1>
+    <div class="pagina-acciones">
+        <a href="{% url 'panel_admin:usuario_nuevo' %}" class="btn-primario">+ Nuevo usuario</a>
+    </div>
+</div>
+
+{% if usuario_a_eliminar %}
+<div class="alerta-confirmacion" role="alert">
+    <p>¿Estás seguro de que deseas eliminar al usuario
+       <strong>{{ usuario_a_eliminar.username }}</strong>?
+       Esta acción no se puede deshacer.</p>
+    <form method="post" action="{% url 'panel_admin:eliminar_usuario' usuario_a_eliminar.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn-peligro">Confirmar eliminación</button>
+        <a href="{% url 'panel_admin:usuarios' %}" class="btn-secundario">Cancelar</a>
+    </form>
+</div>
+{% endif %}
+
+{% if usuarios %}
+<div class="tabla-contenedor">
+    <table class="tabla-usuarios">
+        <thead>
+            <tr>
+                <th scope="col">Usuario</th>
+                <th scope="col">Nombre completo</th>
+                <th scope="col">Correo</th>
+                <th scope="col">Rol</th>
+                <th scope="col">Activo</th>
+                <th scope="col">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for usuario in usuarios %}
+            <tr class="tabla-fila{% if usuario == request.user %} tabla-fila--actual{% endif %}">
+                <td class="tabla-celda">
+                    {{ usuario.username }}
+                    {% if usuario == request.user %}
+                        <span class="badge-yo">(tú)</span>
+                    {% endif %}
+                </td>
+                <td class="tabla-celda">{{ usuario.get_full_name|default:"—" }}</td>
+                <td class="tabla-celda">{{ usuario.email|default:"—" }}</td>
+                <td class="tabla-celda">
+                    <span class="badge-rol badge-rol--{{ usuario.rol }}">{{ usuario.get_rol_display }}</span>
+                </td>
+                <td class="tabla-celda tabla-celda--centrado">
+                    {% if usuario.is_active %}
+                        <span class="badge-activo">Sí</span>
+                    {% else %}
+                        <span class="badge-inactivo">No</span>
+                    {% endif %}
+                </td>
+                <td class="tabla-celda tabla-celda--acciones">
+                    {% if usuario != request.user %}
+                        <a href="{% url 'panel_admin:editar_rol' usuario.pk %}" class="btn-tabla btn-tabla--editar">
+                            Editar rol
+                        </a>
+                        <a href="{% url 'panel_admin:eliminar_usuario' usuario.pk %}" class="btn-tabla btn-tabla--eliminar">
+                            Eliminar
+                        </a>
+                    {% else %}
+                        <span class="tabla-celda-nota">—</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="estado-vacio">
+    <p class="estado-vacio-mensaje">No hay usuarios registrados.</p>
+    <a href="{% url 'panel_admin:usuario_nuevo' %}" class="btn-primario">Crear primer usuario</a>
+</div>
+{% endif %}
+{% endblock %}

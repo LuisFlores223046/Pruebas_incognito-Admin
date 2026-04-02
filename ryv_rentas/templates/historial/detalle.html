@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Renta #{{ renta.pk }} — Historial{% endblock %}
+
+{% block content %}
+<div class="pagina-encabezado">
+    <div class="encabezado-izquierda">
+        <a href="{% url 'historial:lista' %}" class="enlace-volver">&larr; Volver al historial</a>
+        <h1 class="pagina-titulo">
+            Renta #{{ renta.pk }}
+            <span class="badge-estado badge-estado--{{ renta.estado }}">{{ renta.get_estado_display }}</span>
+        </h1>
+    </div>
+</div>
+
+<div class="detalle-contenedor">
+    <section class="detalle-seccion">
+        <h2 class="detalle-seccion-titulo">Equipo rentado</h2>
+        <dl class="detalle-lista">
+            <dt class="detalle-etiqueta">Equipo</dt>
+            <dd class="detalle-valor">
+                <a href="{% url 'inventario:detalle' renta.equipo.pk %}">{{ renta.equipo.nombre }}</a>
+            </dd>
+            <dt class="detalle-etiqueta">Categoría</dt>
+            <dd class="detalle-valor">{{ renta.equipo.categoria.nombre|default:"—" }}</dd>
+        </dl>
+    </section>
+
+    <section class="detalle-seccion">
+        <h2 class="detalle-seccion-titulo">Datos del cliente</h2>
+        <dl class="detalle-lista">
+            <dt class="detalle-etiqueta">Nombre</dt>
+            <dd class="detalle-valor">{{ renta.cliente.nombre }}</dd>
+            <dt class="detalle-etiqueta">Teléfono</dt>
+            <dd class="detalle-valor">{{ renta.cliente.telefono }}</dd>
+            {% if renta.cliente.direccion %}
+            <dt class="detalle-etiqueta">Dirección</dt>
+            <dd class="detalle-valor">{{ renta.cliente.direccion }}</dd>
+            {% endif %}
+            {% if renta.cliente.correo %}
+            <dt class="detalle-etiqueta">Correo</dt>
+            <dd class="detalle-valor">{{ renta.cliente.correo }}</dd>
+            {% endif %}
+        </dl>
+    </section>
+
+    <section class="detalle-seccion">
+        <h2 class="detalle-seccion-titulo">Datos de la renta</h2>
+        <dl class="detalle-lista">
+            <dt class="detalle-etiqueta">Fecha de inicio</dt>
+            <dd class="detalle-valor">{{ renta.fecha_inicio }}</dd>
+            <dt class="detalle-etiqueta">Fecha de vencimiento</dt>
+            <dd class="detalle-valor">{{ renta.fecha_vencimiento }}</dd>
+            {% if renta.fecha_devolucion %}
+            <dt class="detalle-etiqueta">Fecha de devolución</dt>
+            <dd class="detalle-valor">{{ renta.fecha_devolucion }}</dd>
+            {% endif %}
+            <dt class="detalle-etiqueta">Precio</dt>
+            <dd class="detalle-valor detalle-valor--monto">${{ renta.precio }}</dd>
+            <dt class="detalle-etiqueta">Depósito</dt>
+            <dd class="detalle-valor detalle-valor--monto">${{ renta.deposito }}</dd>
+            <dt class="detalle-etiqueta">Registrada por</dt>
+            <dd class="detalle-valor">{{ renta.registrada_por.get_full_name|default:renta.registrada_por.username|default:"—" }}</dd>
+            <dt class="detalle-etiqueta">Fecha de registro</dt>
+            <dd class="detalle-valor">{{ renta.created_at|date:"d/m/Y H:i" }}</dd>
+            {% if renta.notas %}
+            <dt class="detalle-etiqueta">Notas</dt>
+            <dd class="detalle-valor">{{ renta.notas }}</dd>
+            {% endif %}
+        </dl>
+    </section>
+</div>
+{% endblock %}
