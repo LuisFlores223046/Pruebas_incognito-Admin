@@ -5,10 +5,13 @@
                 <span class="sidebar-seccion-titulo">Operaciones</span>
                 <ul class="sidebar-lista">
                     <li class="sidebar-item">
-                        <a href="{% url 'rentas:lista' %}" class="sidebar-enlace">Rentas activas</a>
+                        <a href="{% url 'inventario:lista' %}" class="sidebar-enlace">Inventario</a>
                     </li>
                     <li class="sidebar-item">
-                        <a href="{% url 'inventario:lista' %}" class="sidebar-enlace">Inventario</a>
+                        <a href="{% url 'inventario:disponibles' %}" class="sidebar-enlace">Disponibles</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="{% url 'rentas:lista' %}" class="sidebar-enlace">Rentas activas</a>
                     </li>
                     <li class="sidebar-item">
                         <a href="{% url 'historial:lista' %}" class="sidebar-enlace">Historial</a>
@@ -42,10 +45,13 @@
                 <span class="sidebar-seccion-titulo">Consultas</span>
                 <ul class="sidebar-lista">
                     <li class="sidebar-item">
-                        <a href="{% url 'rentas:lista' %}" class="sidebar-enlace">Rentas activas</a>
+                        <a href="{% url 'inventario:lista' %}" class="sidebar-enlace">Inventario</a>
                     </li>
                     <li class="sidebar-item">
-                        <a href="{% url 'inventario:lista' %}" class="sidebar-enlace">Inventario</a>
+                        <a href="{% url 'inventario:disponibles' %}" class="sidebar-enlace">Disponibles</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="{% url 'rentas:lista' %}" class="sidebar-enlace">Rentas activas</a>
                     </li>
                     <li class="sidebar-item">
                         <a href="{% url 'historial:lista' %}" class="sidebar-enlace">Historial</a>

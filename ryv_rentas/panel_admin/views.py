@@ -2,6 +2,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.utils import timezone
+from django.db.models import F, ExpressionWrapper, IntegerField
 from datetime import date, timedelta
 from authentication.models import Usuario
 from authentication.forms import UsuarioForm, EditarRolForm
@@ -18,15 +19,24 @@ def dashboard_admin(request):
     hoy = date.today()
     limite = hoy + timedelta(days=3)
 
-    total_equipos = Equipo.objects.filter(activo=True).count()
-    equipos_disponibles = Equipo.objects.filter(
-        activo=True, estado='disponible'
+    equipos_activos = Equipo.objects.filter(activo=True)
+    total_equipos = equipos_activos.count()
+
+    # estado es propiedad; filtrar con anotaciones ORM
+    equipos_disponibles = equipos_activos.annotate(
+        calc_disp=ExpressionWrapper(
+            F('cantidad_total')
+            - F('cantidad_en_renta')
+            - F('cantidad_en_mantenimiento'),
+            output_field=IntegerField(),
+        )
+    ).filter(calc_disp__gt=0).count()
+
+    equipos_rentados = equipos_activos.filter(
+        cantidad_en_renta__gt=0
     ).count()
-    equipos_rentados = Equipo.objects.filter(
-        activo=True, estado='rentado'
-    ).count()
-    equipos_mantenimiento = Equipo.objects.filter(
-        activo=True, estado='mantenimiento'
+    equipos_mantenimiento = equipos_activos.filter(
+        cantidad_en_mantenimiento__gt=0
     ).count()
 
     total_rentas_activas = Renta.objects.filter(

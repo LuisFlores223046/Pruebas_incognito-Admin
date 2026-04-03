@@ -82,7 +82,7 @@ def crear_equipo(request):
                 request,
                 f'Equipo "{equipo.nombre}" creado correctamente.',
             )
-            return redirect('inventario:detalle', pk=equipo.pk)
+            return redirect('inventario:lista')
     else:
         form = EquipoForm()
 
