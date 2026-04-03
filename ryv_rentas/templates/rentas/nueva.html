@@ -98,6 +98,14 @@
                 {{ form.deposito }}
             </div>
 
+            <div class="campo-grupo{% if form.metodo_pago.errors %} campo-grupo--error{% endif %}">
+                <label for="{{ form.metodo_pago.id_for_label }}" class="campo-etiqueta">
+                    {{ form.metodo_pago.label }}
+                </label>
+                {{ form.metodo_pago }}
+                {% for error in form.metodo_pago.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
+            </div>
+
             <div class="campo-grupo">
                 <label for="{{ form.notas.id_for_label }}" class="campo-etiqueta">{{ form.notas.label }}</label>
                 {{ form.notas }}

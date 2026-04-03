@@ -52,6 +52,7 @@ class RentaForm(forms.ModelForm):
             'fecha_vencimiento',
             'precio',
             'deposito',
+            'metodo_pago',
             'notas',
         ]
         widgets = {
@@ -75,6 +76,9 @@ class RentaForm(forms.ModelForm):
             'deposito': forms.NumberInput(
                 attrs={'class': 'input-campo', 'step': '0.01'}
             ),
+            'metodo_pago': forms.Select(
+                attrs={'class': 'input-campo'}
+            ),
             'notas': forms.Textarea(
                 attrs={'class': 'input-campo', 'rows': 2}
             ),
@@ -86,6 +90,7 @@ class RentaForm(forms.ModelForm):
             'fecha_vencimiento': 'Fecha de vencimiento',
             'precio': 'Precio total (MXN)',
             'deposito': 'Depósito (MXN)',
+            'metodo_pago': 'Método de pago del depósito',
             'notas': 'Notas (opcional)',
         }
 
@@ -189,6 +194,17 @@ class SolicitudRentaForm(forms.Form):
             attrs={'class': 'input-campo', 'step': '0.01'}
         ),
     )
+    metodo_pago = forms.ChoiceField(
+        label='Método de pago del depósito',
+        choices=[('', '— Selecciona —')] + [
+            ('efectivo', 'Efectivo'),
+            ('transferencia', 'Transferencia bancaria'),
+            ('tarjeta', 'Tarjeta'),
+            ('otro', 'Otro'),
+        ],
+        required=False,
+        widget=forms.Select(attrs={'class': 'input-campo'}),
+    )
     notas = forms.CharField(
         label='Notas (opcional)',
         required=False,
@@ -234,6 +250,29 @@ class FinalizarRentaForm(forms.Form):
     confirmacion = forms.BooleanField(
         required=True,
         label='Confirmo que el equipo fue devuelto.',
+    )
+    monto_recibido = forms.DecimalField(
+        label='Monto recibido del cliente (MXN)',
+        max_digits=10,
+        decimal_places=2,
+        min_value=0,
+        required=False,
+        widget=forms.NumberInput(
+            attrs={'class': 'input-campo', 'step': '0.01',
+                   'placeholder': '0.00', 'id': 'id_monto_recibido'}
+        ),
+        help_text='Cuánto pagó el cliente al momento de la devolución.',
+    )
+    metodo_pago_cierre = forms.ChoiceField(
+        label='Método de pago al cierre',
+        choices=[('', '— Selecciona —')] + [
+            ('efectivo', 'Efectivo'),
+            ('transferencia', 'Transferencia bancaria'),
+            ('tarjeta', 'Tarjeta'),
+            ('otro', 'Otro'),
+        ],
+        required=False,
+        widget=forms.Select(attrs={'class': 'input-campo'}),
     )
     notas_devolucion = forms.CharField(
         label='Notas de devolución (opcional)',

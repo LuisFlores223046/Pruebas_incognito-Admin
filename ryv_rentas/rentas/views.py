@@ -122,6 +122,7 @@ def nueva_renta(request):
                     ),
                     precio=form.cleaned_data['precio'],
                     deposito=form.cleaned_data.get('deposito') or 0,
+                    metodo_pago=form.cleaned_data.get('metodo_pago', ''),
                     notas=form.cleaned_data.get('notas', ''),
                 )
 
@@ -161,8 +162,15 @@ def finalizar_renta(request, pk):
         form = FinalizarRentaForm(request.POST)
         if form.is_valid():
             try:
+                monto_recibido = form.cleaned_data.get('monto_recibido')
                 renta.estado = 'finalizada'
                 renta.fecha_devolucion = date.today()
+                renta.monto_recibido = monto_recibido
+                renta.metodo_pago_cierre = form.cleaned_data.get('metodo_pago_cierre', '')
+                if monto_recibido is not None:
+                    from decimal import Decimal
+                    saldo = max(renta.precio - renta.deposito, Decimal('0'))
+                    renta.cambio_entregado = monto_recibido - saldo
                 notas_dev = form.cleaned_data.get(
                     'notas_devolucion', ''
                 )
@@ -235,6 +243,7 @@ def solicitar_renta(request):
                 'deposito': str(
                     form.cleaned_data.get('deposito') or 0
                 ),
+                'metodo_pago': form.cleaned_data.get('metodo_pago', ''),
                 'notas': form.cleaned_data.get('notas', ''),
             }
 

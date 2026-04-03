@@ -109,6 +109,15 @@ class SolicitudEquipoForm(forms.Form):
         widget=forms.NumberInput(attrs={'class': 'input-campo', 'min': 1}),
     )
 
+    # ── Cantidad a dar de baja ──
+    cantidad_baja = forms.IntegerField(
+        label='Cantidad de unidades a dar de baja',
+        required=False,
+        min_value=1,
+        widget=forms.NumberInput(attrs={'class': 'input-campo', 'min': 1}),
+        help_text='Número de unidades que deseas retirar del inventario.',
+    )
+
     # ── Comentario / motivo (siempre requerido) ──
     comentario = forms.CharField(
         label='Motivo / observaciones',
@@ -140,11 +149,23 @@ class SolicitudEquipoForm(forms.Form):
                     'La cantidad de unidades es obligatoria.',
                 )
 
-        elif tipo in ('edicion_equipo', 'baja_equipo'):
+        elif tipo == 'edicion_equipo':
             if not cleaned.get('equipo_existente'):
                 self.add_error(
                     'equipo_existente',
                     'Debes seleccionar un equipo.',
+                )
+
+        elif tipo == 'baja_equipo':
+            if not cleaned.get('equipo_existente'):
+                self.add_error(
+                    'equipo_existente',
+                    'Debes seleccionar un equipo.',
+                )
+            if not cleaned.get('cantidad_baja'):
+                self.add_error(
+                    'cantidad_baja',
+                    'Debes indicar cuántas unidades deseas dar de baja.',
                 )
 
         return cleaned

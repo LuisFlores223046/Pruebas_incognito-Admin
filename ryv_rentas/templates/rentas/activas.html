@@ -39,11 +39,12 @@
         <thead>
             <tr>
                 <th scope="col">Equipo</th>
-                <th scope="col">Cantidad</th>
+                <th scope="col">Cant.</th>
                 <th scope="col">Cliente</th>
                 <th scope="col">Inicio</th>
                 <th scope="col">Vencimiento</th>
                 <th scope="col">Precio</th>
+                <th scope="col">Depósito</th>
                 <th scope="col">Acciones</th>
             </tr>
         </thead>
@@ -68,6 +69,12 @@
                     {% endif %}
                 </td>
                 <td class="tabla-celda tabla-celda--monto">${{ renta.precio }}</td>
+                <td class="tabla-celda tabla-celda--monto">
+                    ${{ renta.deposito }}
+                    {% if renta.metodo_pago %}
+                        <span class="badge-metodo-pago">{{ renta.get_metodo_pago_display }}</span>
+                    {% endif %}
+                </td>
                 <td class="tabla-celda tabla-celda--acciones">
                     <a href="{% url 'rentas:detalle' renta.pk %}" class="btn-tabla btn-tabla--ver">Ver</a>
                     {% if request.user.es_administrador %}

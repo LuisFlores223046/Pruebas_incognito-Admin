@@ -327,6 +327,13 @@ a:hover {
     color: #fff;
 }
 
+.btn-tabla--eliminar {
+    background-color: #e74c3c;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+
 .btn-tabla--solicitar {
     background-color: #16a085;
     color: #fff;
@@ -1512,6 +1519,23 @@ th {
     color: #2c3e50;
 }
 
+.baja-info-item--destacado {
+    background: #eafaf1;
+    border-radius: 6px;
+    padding: 0.4rem 0.6rem;
+}
+
+.baja-info-valor--disp {
+    color: #1e8449;
+}
+
+.campo-ayuda {
+    font-size: 0.8rem;
+    color: #888;
+    margin-top: 0.25rem;
+    display: block;
+}
+
 .baja-advertencia {
     font-size: 0.85rem;
     color: #935116;
@@ -1523,6 +1547,85 @@ th {
 }
 
 /* ===================================================
+   LIQUIDACIÓN DE RENTA AL CIERRE
+   =================================================== */
+.liquidacion-resumen {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.liquidacion-fila {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.95rem;
+}
+
+.liquidacion-fila--total {
+    border-top: 1px solid #dee2e6;
+    padding-top: 0.5rem;
+    margin-top: 0.25rem;
+    font-weight: 700;
+    font-size: 1.05rem;
+}
+
+.liquidacion-etiqueta {
+    color: #555;
+}
+
+.liquidacion-valor {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.liquidacion-valor--pagado {
+    color: #1e8449;
+}
+
+.liquidacion-valor--saldo {
+    color: #c0392b;
+    font-size: 1.1rem;
+}
+
+.liquidacion-cambio {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #eafaf1;
+    border: 1px solid #a9dfbf;
+    border-radius: 6px;
+    padding: 0.65rem 1rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.liquidacion-valor--cambio {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.badge-metodo-pago {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: #eaf0fb;
+    color: #2471a3;
+    border: 1px solid #aed6f1;
+    border-radius: 4px;
+    padding: 0.1rem 0.45rem;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+}
+
+/* ===================================================
    IMAGEN DE EQUIPO EN DETALLE
    =================================================== */
 .detalle-imagen-contenedor {
@@ -1530,16 +1633,93 @@ th {
     border-radius: 10px;
     overflow: hidden;
     background: #f5f6f7;
-    text-align: center;
-    max-height: 340px;
+    width: 300px;
+    max-width: 100%;
+    height: 300px;
+    align-self: flex-start;
 }
 
 .detalle-equipo-imagen {
-    max-width: 100%;
-    max-height: 340px;
-    object-fit: contain;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
     display: block;
-    margin: 0 auto;
+}
+
+/* ===================================================
+   GRID DE INVENTARIO COMPLETO
+   =================================================== */
+.inventario-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.inv-tarjeta {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.07);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding-bottom: 1rem;
+    position: relative;
+}
+
+/* Borde superior según estado */
+.inv-tarjeta::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    border-radius: 10px 10px 0 0;
+}
+.inv-tarjeta--disponible::before { background: #27ae60; }
+.inv-tarjeta--parcial::before    { background: #f39c12; }
+.inv-tarjeta--rentado::before    { background: #e74c3c; }
+.inv-tarjeta--mantenimiento::before { background: #95a5a6; }
+
+.inv-tarjeta-imagen {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+}
+
+.inv-tarjeta-imagen-placeholder {
+    width: 100%;
+    height: 180px;
+    background: linear-gradient(135deg, #ecf0f1 0%, #d5d8dc 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
+    font-size: 2.5rem;
+}
+
+.inv-tarjeta-cabeza {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem 0;
+}
+
+.inv-tarjeta-nombre {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.inv-tarjeta-desc {
+    font-size: 0.8rem;
+    color: #777;
+    padding: 0 1rem;
+    margin: 0;
+    line-height: 1.4;
 }
 
 /* ===================================================
@@ -1561,15 +1741,16 @@ th {
 
 .disponible-tarjeta-imagen {
     width: 100%;
-    height: 150px;
+    height: 180px;
     object-fit: cover;
     border-radius: 6px;
     margin-bottom: 0.25rem;
+    display: block;
 }
 
 .disponible-tarjeta-imagen-placeholder {
     width: 100%;
-    height: 110px;
+    height: 180px;
     background: linear-gradient(135deg, #ecf0f1 0%, #d5d8dc 100%);
     border-radius: 6px;
     display: flex;

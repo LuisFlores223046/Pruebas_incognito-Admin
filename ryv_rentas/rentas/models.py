@@ -52,6 +52,13 @@ class Renta(models.Model):
         ('finalizada', 'Finalizada'),
         ('vencida', 'Vencida'),
     ]
+
+    METODO_PAGO_CHOICES = [
+        ('efectivo', 'Efectivo'),
+        ('transferencia', 'Transferencia bancaria'),
+        ('tarjeta', 'Tarjeta'),
+        ('otro', 'Otro'),
+    ]
     equipo = models.ForeignKey(
         'inventario.Equipo',
         on_delete=models.PROTECT,
@@ -93,6 +100,35 @@ class Renta(models.Model):
         default=0,
         verbose_name='depósito (MXN)',
     )
+    monto_recibido = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name='monto recibido al cierre (MXN)',
+        help_text='Cantidad que pagó el cliente al devolver el equipo.',
+    )
+    cambio_entregado = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name='cambio entregado (MXN)',
+    )
+    metodo_pago = models.CharField(
+        max_length=20,
+        choices=METODO_PAGO_CHOICES,
+        blank=True,
+        default='',
+        verbose_name='método de pago (depósito)',
+    )
+    metodo_pago_cierre = models.CharField(
+        max_length=20,
+        choices=METODO_PAGO_CHOICES,
+        blank=True,
+        default='',
+        verbose_name='método de pago (cierre)',
+    )
     cantidad = models.PositiveIntegerField(
         default=1,
         verbose_name='cantidad',
@@ -120,6 +156,22 @@ class Renta(models.Model):
     def __str__(self):
         """Representación en texto de la renta."""
         return f"{self.equipo} - {self.cliente} ({self.estado})"
+
+    @property
+    def saldo_pendiente(self):
+        """Lo que el cliente aún debe pagar al devolver (precio - depósito)."""
+        return max(self.precio - self.deposito, 0)
+
+    @property
+    def cambio_a_devolver(self):
+        """
+        Cambio que se le regresa al cliente.
+        Solo disponible cuando monto_recibido está registrado.
+        Positivo = cambio a devolver; negativo = todavía debe.
+        """
+        if self.monto_recibido is None:
+            return None
+        return self.monto_recibido - self.saldo_pendiente
 
     @property
     def dias_para_vencer(self):

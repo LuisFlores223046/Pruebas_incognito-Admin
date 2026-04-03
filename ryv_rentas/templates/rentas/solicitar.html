@@ -97,6 +97,10 @@
                 {{ form.deposito }}
             </div>
             <div class="campo-grupo">
+                <label for="{{ form.metodo_pago.id_for_label }}" class="campo-etiqueta">{{ form.metodo_pago.label }}</label>
+                {{ form.metodo_pago }}
+            </div>
+            <div class="campo-grupo">
                 <label for="{{ form.notas.id_for_label }}" class="campo-etiqueta">{{ form.notas.label }}</label>
                 {{ form.notas }}
             </div>

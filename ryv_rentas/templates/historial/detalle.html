@@ -55,10 +55,36 @@
             <dt class="detalle-etiqueta">Fecha de devolución</dt>
             <dd class="detalle-valor">{{ renta.fecha_devolucion }}</dd>
             {% endif %}
-            <dt class="detalle-etiqueta">Precio</dt>
+            <dt class="detalle-etiqueta">Precio total</dt>
             <dd class="detalle-valor detalle-valor--monto">${{ renta.precio }}</dd>
-            <dt class="detalle-etiqueta">Depósito</dt>
-            <dd class="detalle-valor detalle-valor--monto">${{ renta.deposito }}</dd>
+            <dt class="detalle-etiqueta">Depósito pagado</dt>
+            <dd class="detalle-valor detalle-valor--monto">
+                ${{ renta.deposito }}
+                {% if renta.metodo_pago %}
+                    <span class="badge-metodo-pago">{{ renta.get_metodo_pago_display }}</span>
+                {% endif %}
+            </dd>
+            <dt class="detalle-etiqueta">Saldo al devolver</dt>
+            <dd class="detalle-valor detalle-valor--monto">${{ renta.saldo_pendiente }}</dd>
+            {% if renta.monto_recibido is not None %}
+            <dt class="detalle-etiqueta">Monto recibido al cierre</dt>
+            <dd class="detalle-valor detalle-valor--monto">
+                ${{ renta.monto_recibido }}
+                {% if renta.metodo_pago_cierre %}
+                    <span class="badge-metodo-pago">{{ renta.get_metodo_pago_cierre_display }}</span>
+                {% endif %}
+            </dd>
+            <dt class="detalle-etiqueta">Cambio entregado</dt>
+            <dd class="detalle-valor detalle-valor--monto">
+                {% if renta.cambio_entregado is not None %}
+                    {% if renta.cambio_entregado >= 0 %}
+                        <span style="color:#1e8449">${{ renta.cambio_entregado }}</span>
+                    {% else %}
+                        <span style="color:#c0392b">Faltaron ${{ renta.cambio_entregado|stringformat:"s"|slice:"1:" }}</span>
+                    {% endif %}
+                {% endif %}
+            </dd>
+            {% endif %}
             <dt class="detalle-etiqueta">Registrada por</dt>
             <dd class="detalle-valor">{{ renta.registrada_por.get_full_name|default:renta.registrada_por.username|default:"—" }}</dd>
             <dt class="detalle-etiqueta">Fecha de registro</dt>

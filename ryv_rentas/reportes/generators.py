@@ -110,11 +110,25 @@ def generar_pdf_rentas(rentas_qs, periodo_inicio=None, periodo_fin=None):
     )
     elementos.append(Spacer(1, 20))
 
+    METODOS = {
+        'efectivo': 'Efectivo',
+        'transferencia': 'Transfer.',
+        'tarjeta': 'Tarjeta',
+        'otro': 'Otro',
+        '': '—',
+    }
+
     datos = [
-        ['Equipo', 'Cant.', 'Cliente', 'Inicio', 'Vencimiento', 'Precio (MXN)']
+        ['Equipo', 'Cant.', 'Cliente', 'Inicio', 'Vencim.', 'Precio', 'Depósito', 'Método', 'Recibido', 'Cambio']
     ]
-    total = 0
+    total_precio = 0
+    total_recibido = 0
     for renta in rentas_qs:
+        metodo = METODOS.get(renta.metodo_pago or '', '—')
+        recibido = f'${renta.monto_recibido:,.2f}' if renta.monto_recibido is not None else '—'
+        cambio = ''
+        if renta.cambio_entregado is not None:
+            cambio = f'${renta.cambio_entregado:,.2f}'
         datos.append([
             renta.equipo.nombre,
             str(renta.cantidad),
@@ -122,12 +136,18 @@ def generar_pdf_rentas(rentas_qs, periodo_inicio=None, periodo_fin=None):
             str(renta.fecha_inicio),
             str(renta.fecha_vencimiento),
             f'${renta.precio:,.2f}',
+            f'${renta.deposito:,.2f}',
+            metodo,
+            recibido,
+            cambio,
         ])
-        total += renta.precio
+        total_precio += renta.precio
+        if renta.monto_recibido is not None:
+            total_recibido += renta.monto_recibido
 
-    datos.append(['', '', '', '', 'TOTAL', f'${total:,.2f}'])
+    datos.append(['', '', '', '', 'TOTAL', f'${total_precio:,.2f}', '', '', f'${total_recibido:,.2f}', ''])
 
-    tabla = Table(datos, colWidths=[130, 35, 110, 70, 80, 80])
+    tabla = Table(datos, colWidths=[90, 28, 80, 50, 50, 55, 55, 48, 55, 45])
     tabla.setStyle(TableStyle([
         (
             'BACKGROUND',
@@ -151,6 +171,8 @@ def generar_pdf_rentas(rentas_qs, periodo_inicio=None, periodo_fin=None):
         ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
         ('ALIGN', (1, 0), (1, -1), 'CENTER'),
         ('ALIGN', (5, 0), (-1, -1), 'RIGHT'),
+        ('FONTSIZE', (0, 0), (-1, -1), 8),
+        ('FONTSIZE', (0, 0), (-1, 0), 8),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
         ('TOPPADDING', (0, 0), (-1, -1), 6),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 6),

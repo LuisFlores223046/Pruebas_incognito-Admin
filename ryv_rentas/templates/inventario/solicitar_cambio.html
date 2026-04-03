@@ -139,14 +139,31 @@
                         <span class="baja-info-valor" id="baja-total">—</span>
                     </div>
                     <div class="baja-info-item">
+                        <span class="baja-info-label">En renta</span>
+                        <span class="baja-info-valor" id="baja-renta">—</span>
+                    </div>
+                    <div class="baja-info-item">
                         <span class="baja-info-label">En mantenimiento</span>
                         <span class="baja-info-valor" id="baja-mant">—</span>
                     </div>
+                    <div class="baja-info-item baja-info-item--destacado">
+                        <span class="baja-info-label">Disponibles</span>
+                        <span class="baja-info-valor baja-info-valor--disp" id="baja-disp">—</span>
+                    </div>
                 </div>
                 <p class="baja-advertencia">
-                    ⚠️ Al aprobar la baja, el equipo quedará inactivo en el sistema.
-                    Asegúrate de que no tenga rentas activas antes de solicitarlo.
+                    ⚠️ Solo puedes dar de baja unidades que no estén en renta activa.
+                    Si das de baja todas las unidades, el equipo quedará inactivo.
                 </p>
+            </div>
+
+            <div id="panel-cantidad-baja" class="campo-grupo{% if form.cantidad_baja.errors %} campo-grupo--error{% endif %}" style="display:none">
+                <label for="{{ form.cantidad_baja.id_for_label }}" class="campo-etiqueta">
+                    {{ form.cantidad_baja.label }} <span class="campo-requerido">*</span>
+                </label>
+                {{ form.cantidad_baja }}
+                <small class="campo-ayuda">Máximo: <span id="baja-max">—</span> unidades disponibles.</small>
+                {% for error in form.cantidad_baja.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
             </div>
         </section>
 
@@ -186,10 +203,23 @@ function poblarSelectBaja() {
 }
 poblarSelectBaja();
 
+var SECCIONES_TIPO = {
+    'alta_equipo':    'seccion-alta',
+    'edicion_equipo': 'seccion-edicion',
+    'baja_equipo':    'seccion-baja'
+};
+
 function mostrarSeccion(tipo) {
-    document.getElementById('seccion-alta').style.display   = (tipo === 'alta_equipo')   ? 'block' : 'none';
-    document.getElementById('seccion-edicion').style.display = (tipo === 'edicion_equipo') ? 'block' : 'none';
-    document.getElementById('seccion-baja').style.display   = (tipo === 'baja_equipo')   ? 'block' : 'none';
+    Object.keys(SECCIONES_TIPO).forEach(function(t) {
+        var id = SECCIONES_TIPO[t];
+        var seccion = document.getElementById(id);
+        var activa = (t === tipo);
+        seccion.style.display = activa ? 'block' : 'none';
+        // Deshabilitar inputs de secciones inactivas para que no se envíen
+        seccion.querySelectorAll('input, select, textarea').forEach(function(el) {
+            el.disabled = !activa;
+        });
+    });
 }
 
 // Mostrar sección correcta según tipo
@@ -215,13 +245,31 @@ selectEquipoEdit.addEventListener('change', function() {
 selectEquipoBaja.addEventListener('change', function() {
     var id = parseInt(this.value);
     var panel = document.getElementById('panel-info-baja');
-    if (!id) { panel.style.display = 'none'; return; }
+    var panelCantidad = document.getElementById('panel-cantidad-baja');
+    if (!id) {
+        panel.style.display = 'none';
+        panelCantidad.style.display = 'none';
+        return;
+    }
     var eq = EQUIPOS_DATA.find(function(e) { return e.id === id; });
     if (eq) {
+        var disponible = Math.max(0, eq.cantidad_total - eq.cantidad_en_renta - eq.cantidad_en_mantenimiento);
         document.getElementById('baja-nombre').textContent = eq.nombre;
         document.getElementById('baja-total').textContent = eq.cantidad_total;
+        document.getElementById('baja-renta').textContent = eq.cantidad_en_renta;
         document.getElementById('baja-mant').textContent = eq.cantidad_en_mantenimiento;
+        document.getElementById('baja-disp').textContent = disponible;
+        document.getElementById('baja-max').textContent = disponible;
+        // Ajustar el máximo del input
+        var inputCantBaja = document.getElementById('{{ form.cantidad_baja.id_for_label }}');
+        if (inputCantBaja) {
+            inputCantBaja.max = disponible;
+            if (!inputCantBaja.value || parseInt(inputCantBaja.value) > disponible) {
+                inputCantBaja.value = disponible;
+            }
+        }
         panel.style.display = 'block';
+        panelCantidad.style.display = 'block';
     }
 });
 

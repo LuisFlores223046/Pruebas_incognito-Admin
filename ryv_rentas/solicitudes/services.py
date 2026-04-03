@@ -41,15 +41,19 @@ def ejecutar_solicitud(solicitud):
     elif solicitud.tipo == 'baja_equipo':
         equipo = solicitud.equipo
         if equipo:
-            if not equipo.tiene_renta_activa():
-                equipo.activo = False
-                equipo.save()
-            else:
+            if equipo.tiene_renta_activa():
                 raise ValueError(
                     f'El equipo "{equipo.nombre}" tiene '
                     f'{equipo.cantidad_en_renta} unidad(es) en renta '
                     'y no puede darse de baja.'
                 )
+            cantidad_baja = int(datos.get('cantidad_baja', equipo.cantidad_total))
+            if cantidad_baja >= equipo.cantidad_total:
+                equipo.activo = False
+                equipo.save()
+            else:
+                equipo.cantidad_total -= cantidad_baja
+                equipo.save()
 
     elif solicitud.tipo == 'nueva_renta':
         cliente, _ = Cliente.objects.get_or_create(
@@ -77,6 +81,7 @@ def ejecutar_solicitud(solicitud):
                 fecha_vencimiento=datos['fecha_vencimiento'],
                 precio=datos['precio'],
                 deposito=datos.get('deposito', 0),
+                metodo_pago=datos.get('metodo_pago', ''),
                 notas=datos.get('notas', ''),
             )
             # RN-002: actualizar contador de renta

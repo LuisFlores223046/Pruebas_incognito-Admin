@@ -13,7 +13,7 @@
         <h2 class="reporte-seccion-titulo">Reporte de inventario</h2>
         <p class="reporte-descripcion">
             Genera un PDF con el estado actual de todos los equipos activos:
-            nombre, categoría, estado, cantidad disponible y total.
+            nombre, total, en renta, en mantenimiento y disponibles.
         </p>
         <form method="post" action="{% url 'reportes:generar_inventario' %}">
             {% csrf_token %}

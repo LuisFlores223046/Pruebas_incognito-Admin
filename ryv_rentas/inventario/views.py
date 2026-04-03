@@ -189,7 +189,7 @@ def solicitar_cambio(request):
     equipos_data = list(
         Equipo.objects.filter(activo=True).order_by('nombre').values(
             'id', 'nombre', 'descripcion',
-            'cantidad_total', 'cantidad_en_mantenimiento',
+            'cantidad_total', 'cantidad_en_mantenimiento', 'cantidad_en_renta',
         )
     )
 
@@ -212,6 +212,10 @@ def solicitar_cambio(request):
                     'nombre': form.cleaned_data.get('nombre_equipo', ''),
                     'descripcion': form.cleaned_data.get('descripcion_equipo', ''),
                     'cantidad_total': form.cleaned_data.get('cantidad_total'),
+                }
+            elif tipo == 'baja_equipo' and equipo_seleccionado:
+                datos_json = {
+                    'cantidad_baja': form.cleaned_data.get('cantidad_baja', 1) or 1,
                 }
 
             Solicitud.objects.create(
