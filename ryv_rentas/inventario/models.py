@@ -28,6 +28,12 @@ class Equipo(models.Model):
         default=0,
         verbose_name='en mantenimiento',
     )
+    imagen = models.ImageField(
+        upload_to='equipos/',
+        blank=True,
+        null=True,
+        verbose_name='imagen de referencia',
+    )
     activo = models.BooleanField(
         default=True,
         verbose_name='activo',

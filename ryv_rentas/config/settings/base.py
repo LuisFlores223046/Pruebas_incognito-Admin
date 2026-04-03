@@ -57,6 +57,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
+# Media files (imágenes de equipos)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 LANGUAGE_CODE = 'es-mx'
 TIME_ZONE = 'America/Chihuahua'
 USE_I18N = True

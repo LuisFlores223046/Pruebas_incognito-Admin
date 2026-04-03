@@ -32,6 +32,12 @@
 {% endif %}
 
 <div class="detalle-contenedor">
+    {% if equipo.imagen %}
+    <div class="detalle-imagen-contenedor">
+        <img src="{{ equipo.imagen.url }}" alt="Imagen de {{ equipo.nombre }}" class="detalle-equipo-imagen">
+    </div>
+    {% endif %}
+
     <section class="detalle-seccion">
         <h2 class="detalle-seccion-titulo">Información del equipo</h2>
         <dl class="detalle-lista">

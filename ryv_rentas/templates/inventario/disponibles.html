@@ -41,6 +41,14 @@
     <div id="vista-tarjetas" class="disponibles-grid">
         {% for equipo in equipos %}
         <div class="disponible-tarjeta">
+
+            {# Imagen de referencia #}
+            {% if equipo.imagen %}
+                <img src="{{ equipo.imagen.url }}" alt="{{ equipo.nombre }}" class="disponible-tarjeta-imagen">
+            {% else %}
+                <div class="disponible-tarjeta-imagen-placeholder">🔧</div>
+            {% endif %}
+
             <div class="disponible-tarjeta-cabeza">
                 <h2 class="disponible-tarjeta-nombre">{{ equipo.nombre }}</h2>
                 <span class="disponible-tarjeta-badge">

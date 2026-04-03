@@ -16,7 +16,7 @@
 {% endif %}
 
 <div class="formulario-contenedor">
-    <form method="post" class="formulario" novalidate>
+    <form method="post" enctype="multipart/form-data" class="formulario" novalidate>
         {% csrf_token %}
 
         {% if form.non_field_errors %}

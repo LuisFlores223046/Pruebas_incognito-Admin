@@ -75,7 +75,7 @@ def detalle_equipo(request, pk):
 def crear_equipo(request):
     """Crea un nuevo equipo en el inventario (solo admin)."""
     if request.method == 'POST':
-        form = EquipoForm(request.POST)
+        form = EquipoForm(request.POST, request.FILES)
         if form.is_valid():
             equipo = form.save()
             messages.success(
@@ -96,7 +96,7 @@ def editar_equipo(request, pk):
     tiene_renta = equipo.tiene_renta_activa()
 
     if request.method == 'POST':
-        form = EquipoForm(request.POST, instance=equipo)
+        form = EquipoForm(request.POST, request.FILES, instance=equipo)
         if form.is_valid():
             # RN-007: No reducir el total por debajo de lo rentado
             if tiene_renta:
@@ -168,6 +168,9 @@ def dar_baja_equipo(request, pk):
 @empleado_o_admin
 def solicitar_cambio(request):
     """El empleado solicita un cambio en el inventario (RN-008)."""
+    import json
+    from django.core.serializers.json import DjangoJSONEncoder
+
     if request.user.es_administrador():
         messages.info(
             request,
@@ -176,32 +179,45 @@ def solicitar_cambio(request):
         return redirect('inventario:lista')
 
     equipo_pk = request.GET.get('equipo')
-    equipo = None
+    equipo_preseleccionado = None
     if equipo_pk:
-        equipo = get_object_or_404(Equipo, pk=equipo_pk, activo=True)
+        equipo_preseleccionado = get_object_or_404(
+            Equipo, pk=equipo_pk, activo=True
+        )
+
+    # Datos de equipos para pre-poblar campos vía JS
+    equipos_data = list(
+        Equipo.objects.filter(activo=True).order_by('nombre').values(
+            'id', 'nombre', 'descripcion',
+            'cantidad_total', 'cantidad_en_mantenimiento',
+        )
+    )
 
     if request.method == 'POST':
         form = SolicitudEquipoForm(request.POST)
         if form.is_valid():
             tipo = form.cleaned_data['tipo']
             comentario = form.cleaned_data['comentario']
+            equipo_seleccionado = form.cleaned_data.get('equipo_existente')
 
             datos_json = {}
             if tipo == 'alta_equipo':
                 datos_json = {
                     'nombre': form.cleaned_data.get('nombre_equipo', ''),
-                    'descripcion': form.cleaned_data.get(
-                        'descripcion_equipo', ''
-                    ),
-                    'cantidad_total': form.cleaned_data.get(
-                        'cantidad_total', 1
-                    ) or 1,
+                    'descripcion': form.cleaned_data.get('descripcion_equipo', ''),
+                    'cantidad_total': form.cleaned_data.get('cantidad_total', 1) or 1,
+                }
+            elif tipo == 'edicion_equipo' and equipo_seleccionado:
+                datos_json = {
+                    'nombre': form.cleaned_data.get('nombre_equipo', ''),
+                    'descripcion': form.cleaned_data.get('descripcion_equipo', ''),
+                    'cantidad_total': form.cleaned_data.get('cantidad_total'),
                 }
 
             Solicitud.objects.create(
                 tipo=tipo,
                 solicitante=request.user,
-                equipo=equipo,
+                equipo=equipo_seleccionado,
                 comentario=comentario,
                 datos_json=datos_json,
             )
@@ -211,11 +227,15 @@ def solicitar_cambio(request):
             )
             return redirect('inventario:lista')
     else:
-        form = SolicitudEquipoForm()
+        initial = {}
+        if equipo_preseleccionado:
+            initial['equipo_existente'] = equipo_preseleccionado
+        form = SolicitudEquipoForm(initial=initial)
 
     contexto = {
         'form': form,
-        'equipo': equipo,
+        'equipo_preseleccionado': equipo_preseleccionado,
+        'equipos_json': json.dumps(equipos_data, cls=DjangoJSONEncoder),
     }
     return render(
         request,
