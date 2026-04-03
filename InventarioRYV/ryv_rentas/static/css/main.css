@@ -327,6 +327,13 @@ a:hover {
     color: #fff;
 }
 
+.btn-tabla--eliminar {
+    background-color: #e74c3c;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+
 .btn-tabla--solicitar {
     background-color: #16a085;
     color: #fff;

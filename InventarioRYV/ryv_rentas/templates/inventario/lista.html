@@ -92,6 +92,15 @@
                 {% if equipo.cantidad_disponible > 0 %}
                 <a href="{% url 'rentas:nueva' %}?equipo={{ equipo.pk }}" class="btn-primario btn-tarjeta-accion">Rentar</a>
                 {% endif %}
+                {% if not equipo.tiene_renta_activa %}
+                <form method="post" action="{% url 'inventario:baja' equipo.pk %}" style="display:inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-peligro btn-tarjeta-accion"
+                            data-confirmar="¿Dar de baja {{ equipo.nombre }}? Esta acción no se puede deshacer.">
+                        Eliminar
+                    </button>
+                </form>
+                {% endif %}
             {% else %}
                 {% if equipo.cantidad_disponible > 0 %}
                 <a href="{% url 'rentas:solicitar' %}?equipo={{ equipo.pk }}" class="btn-primario btn-tarjeta-accion">Solicitar renta</a>
@@ -146,6 +155,15 @@
                         <a href="{% url 'inventario:editar' equipo.pk %}" class="btn-tabla btn-tabla--editar">Editar</a>
                         {% if equipo.cantidad_disponible > 0 %}
                         <a href="{% url 'rentas:nueva' %}?equipo={{ equipo.pk }}" class="btn-tabla btn-tabla--rentar">Rentar</a>
+                        {% endif %}
+                        {% if not equipo.tiene_renta_activa %}
+                        <form method="post" action="{% url 'inventario:baja' equipo.pk %}" style="display:inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-tabla btn-tabla--eliminar"
+                                    data-confirmar="¿Dar de baja {{ equipo.nombre }}? Esta acción no se puede deshacer.">
+                                Eliminar
+                            </button>
+                        </form>
                         {% endif %}
                     {% else %}
                         <a href="{% url 'inventario:solicitar' %}?equipo={{ equipo.pk }}" class="btn-tabla btn-tabla--solicitar">Solicitar cambio</a>
