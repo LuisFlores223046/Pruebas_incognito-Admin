@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if mis_solicitudes %}Mis solicitudes{% else %}Solicitudes pendientes{% endif %} — RYV Rentas
+{% endblock %}
+
+{% block content %}
+<div class="pagina-encabezado">
+    <h1 class="pagina-titulo">
+        {% if mis_solicitudes %}
+            Mis solicitudes
+        {% else %}
+            Solicitudes pendientes de revisión
+        {% endif %}
+    </h1>
+</div>
+
+{% if solicitudes %}
+<div class="tabla-contenedor">
+    <table class="tabla-solicitudes">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Tipo</th>
+                <th scope="col">Solicitante</th>
+                <th scope="col">Equipo / Renta</th>
+                <th scope="col">Comentario</th>
+                <th scope="col">Estado</th>
+                <th scope="col">Fecha</th>
+                {% if not mis_solicitudes %}
+                <th scope="col">Acciones</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for solicitud in solicitudes %}
+            <tr class="tabla-fila tabla-fila--{{ solicitud.estado }}">
+                <td class="tabla-celda">{{ solicitud.pk }}</td>
+                <td class="tabla-celda">
+                    <span class="badge-tipo-solicitud">{{ solicitud.get_tipo_display }}</span>
+                </td>
+                <td class="tabla-celda">{{ solicitud.solicitante.username }}</td>
+                <td class="tabla-celda">
+                    {% if solicitud.equipo %}
+                        <a href="{% url 'inventario:detalle' solicitud.equipo.pk %}">{{ solicitud.equipo.nombre }}</a>
+                    {% elif solicitud.renta %}
+                        Renta #{{ solicitud.renta.pk }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td class="tabla-celda tabla-celda--comentario">{{ solicitud.comentario|truncatechars:80 }}</td>
+                <td class="tabla-celda">
+                    <span class="badge-estado-solicitud badge-estado-solicitud--{{ solicitud.estado }}">
+                        {{ solicitud.get_estado_display }}
+                    </span>
+                </td>
+                <td class="tabla-celda">{{ solicitud.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                {% if not mis_solicitudes %}
+                <td class="tabla-celda tabla-celda--acciones">
+                    {% if solicitud.estado == 'pendiente' %}
+                        <form method="post" action="{% url 'panel_admin:aprobar' solicitud.pk %}" class="form-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-tabla btn-tabla--aprobar"
+                                    data-confirmar="¿Aprobar y ejecutar la solicitud #{{ solicitud.pk }}?">
+                                Aprobar
+                            </button>
+                        </form>
+                        <form method="post" action="{% url 'panel_admin:rechazar' solicitud.pk %}" class="form-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-tabla btn-tabla--rechazar"
+                                    data-confirmar="¿Rechazar la solicitud #{{ solicitud.pk }}?">
+                                Rechazar
+                            </button>
+                        </form>
+                    {% else %}
+                        <span class="tabla-celda-nota">
+                            {{ solicitud.get_estado_display }}
+                            {% if solicitud.resuelto_por %}
+                                por {{ solicitud.resuelto_por.username }}
+                            {% endif %}
+                        </span>
+                    {% endif %}
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="estado-vacio">
+    {% if mis_solicitudes %}
+        <p class="estado-vacio-mensaje">No has enviado ninguna solicitud todavía.</p>
+        <a href="{% url 'rentas:solicitar' %}" class="btn-primario">Solicitar renta</a>
+    {% else %}
+        <p class="estado-vacio-mensaje">No hay solicitudes pendientes. ¡Todo al día!</p>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

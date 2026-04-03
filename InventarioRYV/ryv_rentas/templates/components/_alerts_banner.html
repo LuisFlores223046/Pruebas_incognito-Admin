@@ -1,0 +1,32 @@
+{% if total_alertas > 0 %}
+<div class="alertas-banner" role="alert" aria-live="polite">
+    {% if alertas_vencidas %}
+    <div class="alerta-grupo alerta-grupo--urgente">
+        <strong class="alerta-titulo">Rentas vencidas sin cerrar ({{ alertas_vencidas|length }}):</strong>
+        <ul class="alerta-lista">
+            {% for renta in alertas_vencidas %}
+            <li class="alerta-item alerta-item--vencida">
+                <a href="{% url 'rentas:detalle' renta.pk %}" class="alerta-enlace">
+                    {{ renta.equipo.nombre }} — {{ renta.cliente.nombre }} (venció {{ renta.fecha_vencimiento }})
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    {% if alertas_proximas %}
+    <div class="alerta-grupo alerta-grupo--advertencia">
+        <strong class="alerta-titulo">Próximas a vencer ({{ alertas_proximas|length }}):</strong>
+        <ul class="alerta-lista">
+            {% for renta in alertas_proximas %}
+            <li class="alerta-item alerta-item--proxima">
+                <a href="{% url 'rentas:detalle' renta.pk %}" class="alerta-enlace">
+                    {{ renta.equipo.nombre }} — {{ renta.cliente.nombre }} (vence {{ renta.fecha_vencimiento }})
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+{% endif %}

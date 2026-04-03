@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Editar {{ equipo.nombre }} — Inventario{% endblock %}
+
+{% block content %}
+<div class="pagina-encabezado">
+    <a href="{% url 'inventario:detalle' equipo.pk %}" class="enlace-volver">&larr; Volver al detalle</a>
+    <h1 class="pagina-titulo">Editar: {{ equipo.nombre }}</h1>
+</div>
+
+{% if tiene_renta %}
+<div class="alerta-informacion" role="alert">
+    <strong>Atención:</strong> Este equipo tiene unidades en renta activa.
+    No puedes reducir la cantidad total por debajo de las unidades rentadas.
+</div>
+{% endif %}
+
+<div class="formulario-contenedor">
+    <form method="post" enctype="multipart/form-data" class="formulario" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="campo-errores-globales">
+            {% for error in form.non_field_errors %}
+            <p class="campo-error">{{ error }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% for field in form %}
+        <div class="campo-grupo{% if field.errors %} campo-grupo--error{% endif %}">
+            <label for="{{ field.id_for_label }}" class="campo-etiqueta">
+                {{ field.label }}
+                {% if field.field.required %}<span class="campo-requerido">*</span>{% endif %}
+            </label>
+            {{ field }}
+            {% if field.help_text %}<p class="campo-ayuda">{{ field.help_text }}</p>{% endif %}
+            {% for error in field.errors %}
+            <p class="campo-error">{{ error }}</p>
+            {% endfor %}
+        </div>
+        {% endfor %}
+
+        <div class="formulario-acciones">
+            <button type="submit" class="btn-primario">Guardar cambios</button>
+            <a href="{% url 'inventario:detalle' equipo.pk %}" class="btn-secundario">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

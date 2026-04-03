@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}{{ equipo.nombre }} — Inventario{% endblock %}
+
+{% block content %}
+<div class="pagina-encabezado">
+    <div class="encabezado-izquierda">
+        <a href="{% url 'inventario:lista' %}" class="enlace-volver">&larr; Volver al inventario</a>
+        <h1 class="pagina-titulo">{{ equipo.nombre }}</h1>
+    </div>
+    <div class="pagina-acciones">
+        {% if request.user.es_administrador %}
+            <a href="{% url 'inventario:editar' equipo.pk %}" class="btn-secundario">Editar</a>
+            {% if not equipo.tiene_renta_activa %}
+                {% if confirmar_baja %}
+                    <form method="post" action="{% url 'inventario:baja' equipo.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-peligro">Confirmar baja</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'inventario:baja' equipo.pk %}" class="btn-peligro">Dar de baja</a>
+                {% endif %}
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+{% if confirmar_baja %}
+<div class="alerta-confirmacion" role="alert">
+    <p>¿Estás seguro de que deseas dar de baja <strong>{{ equipo.nombre }}</strong>? Esta acción no se puede deshacer.</p>
+</div>
+{% endif %}
+
+<div class="detalle-contenedor">
+    {% if equipo.imagen %}
+    <div class="detalle-imagen-contenedor">
+        <img src="{{ equipo.imagen.url }}" alt="Imagen de {{ equipo.nombre }}" class="detalle-equipo-imagen">
+    </div>
+    {% endif %}
+
+    <section class="detalle-seccion">
+        <h2 class="detalle-seccion-titulo">Información del equipo</h2>
+        <dl class="detalle-lista">
+            <dt class="detalle-etiqueta">Nombre</dt>
+            <dd class="detalle-valor">{{ equipo.nombre }}</dd>
+            <dt class="detalle-etiqueta">Estado</dt>
+            <dd class="detalle-valor">
+                <span class="badge-estado badge-estado--{{ equipo.estado }}">{{ equipo.get_estado_display }}</span>
+            </dd>
+            <dt class="detalle-etiqueta">Total de unidades</dt>
+            <dd class="detalle-valor">{{ equipo.cantidad_total }}</dd>
+            <dt class="detalle-etiqueta">En renta</dt>
+            <dd class="detalle-valor">{{ equipo.cantidad_en_renta }}</dd>
+            <dt class="detalle-etiqueta">En mantenimiento</dt>
+            <dd class="detalle-valor">{{ equipo.cantidad_en_mantenimiento }}</dd>
+            <dt class="detalle-etiqueta">Disponibles</dt>
+            <dd class="detalle-valor"><strong>{{ equipo.cantidad_disponible }}</strong></dd>
+            <dt class="detalle-etiqueta">Fecha de registro</dt>
+            <dd class="detalle-valor">{{ equipo.fecha_registro|date:"d/m/Y H:i" }}</dd>
+            {% if equipo.descripcion %}
+            <dt class="detalle-etiqueta">Descripción</dt>
+            <dd class="detalle-valor">{{ equipo.descripcion }}</dd>
+            {% endif %}
+        </dl>
+    </section>
+
+    {% if rentas_activas %}
+    <section class="detalle-seccion">
+        <h2 class="detalle-seccion-titulo">Rentas activas ({{ rentas_activas|length }})</h2>
+        {% for renta in rentas_activas %}
+        <div class="renta-activa-tarjeta">
+            <p><strong>Cliente:</strong> {{ renta.cliente.nombre }}</p>
+            <p><strong>Teléfono:</strong> {{ renta.cliente.telefono }}</p>
+            <p><strong>Cantidad:</strong> {{ renta.cantidad }} unidad(es)</p>
+            <p><strong>Vencimiento:</strong> {{ renta.fecha_vencimiento }}</p>
+            <a href="{% url 'rentas:detalle' renta.pk %}" class="btn-secundario">Ver renta</a>
+        </div>
+        {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if equipo.cantidad_disponible > 0 %}
+    <section class="detalle-seccion detalle-seccion--accion">
+        {% if request.user.es_administrador %}
+            <a href="{% url 'rentas:nueva' %}?equipo={{ equipo.pk }}" class="btn-primario">Registrar renta</a>
+        {% else %}
+            <a href="{% url 'rentas:solicitar' %}?equipo={{ equipo.pk }}" class="btn-primario">Solicitar renta</a>
+        {% endif %}
+    </section>
+    {% endif %}
+</div>
+{% endblock %}

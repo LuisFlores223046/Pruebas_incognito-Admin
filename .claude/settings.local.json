@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(\"venv/Scripts/python.exe\" manage.py crear_admin_inicial)",
+      "Bash(BASE=\"/c/Users/LuisF/Desktop/Pruebas_incognito-Admin/.claude/worktrees/pedantic-mendeleev/InventarioRYV/ryv_rentas\")",
+      "Read(//c/Users/LuisF/Desktop/Pruebas_incognito-Admin/.claude/worktrees/pedantic-mendeleev/$BASE/inventario/**)",
+      "Read(//c/Users/LuisF/Desktop/Pruebas_incognito-Admin/.claude/worktrees/pedantic-mendeleev/$BASE/rentas/**)",
+      "Read(//c/Users/LuisF/Desktop/Pruebas_incognito-Admin/.claude/worktrees/pedantic-mendeleev/$BASE/solicitudes/**)",
+      "Read(//c/Users/LuisF/Desktop/Pruebas_incognito-Admin/.claude/worktrees/pedantic-mendeleev/$BASE/config/**)",
+      "Read(//c/Users/LuisF/Desktop/Pruebas_incognito-Admin/.claude/worktrees/pedantic-mendeleev/$BASE/templates/rentas/**)",
+      "Read(//c/Users/LuisF/Desktop/Pruebas_incognito-Admin/.claude/worktrees/pedantic-mendeleev/$BASE/templates/historial/**)",
+      "Read(//c/Users/LuisF/Desktop/Pruebas_incognito-Admin/.claude/worktrees/pedantic-mendeleev/$BASE/reportes/**)",
+      "Read(//c/Users/LuisF/Desktop/Pruebas_incognito-Admin/.claude/worktrees/pedantic-mendeleev/$BASE/historial/**)",
+      "Read(//c/Users/LuisF/Desktop/Pruebas_incognito-Admin/.claude/worktrees/pedantic-mendeleev/$BASE/templates/inventario/**)",
+      "Bash(git commit:*)",
+      "Read(//c/Users/LuisF/Desktop/Pruebas_incognito-Admin/.claude/worktrees/pedantic-mendeleev/$BASE/templates/components/**)",
+      "Read(//c/Users/LuisF/Desktop/Pruebas_incognito-Admin/.claude/worktrees/pedantic-mendeleev/$BASE/panel_admin/**)",
+      "Bash(git add:*)",
+      "Bash(BASE=\"/c/Users/LuisF/Desktop/Pruebas_incognito-Admin/.claude/worktrees/pedantic-mendeleev/InventarioRYV/ryv_rentas\" cat -n $BASE/templates/inventario/solicitar_cambio.html)",
+      "Read(//c/Users/LuisF/Desktop/Pruebas_incognito-Admin/.claude/worktrees/pedantic-mendeleev/$BASE/config/settings/**)",
+      "Read(//c/Users/LuisF/Desktop/Pruebas_incognito-Admin/.claude/worktrees/pedantic-mendeleev/$BASE/**)",
+      "Bash(python3 -c \":*)",
+      "Bash(\"/c/Users/LuisF/Desktop/Pruebas_incognito-Admin/.claude/worktrees/pedantic-mendeleev/InventarioRYV/ryv_rentas/static/css/main.css\":*)",
+      "Bash(BASE=\"/c/Users/LuisF/Desktop/Pruebas_incognito-Admin/.claude/worktrees/pedantic-mendeleev/InventarioRYV/ryv_rentas\" cat -n $BASE/rentas/models.py)"
+    ]
+  }
+}
