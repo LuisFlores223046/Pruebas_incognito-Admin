@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Panel Admin — RYV Rentas{% endblock %}
+
+{% block content %}
+<div class="pagina-encabezado">
+    <h1 class="pagina-titulo">Panel de administración</h1>
+</div>
+
+<section class="dashboard-metricas">
+    <h2 class="dashboard-seccion-titulo">Inventario</h2>
+    <div class="metricas-grid">
+        <div class="metrica-tarjeta">
+            <span class="metrica-valor">{{ total_equipos }}</span>
+            <span class="metrica-etiqueta">Equipos registrados</span>
+        </div>
+        <div class="metrica-tarjeta metrica-tarjeta--disponible">
+            <span class="metrica-valor">{{ equipos_disponibles }}</span>
+            <span class="metrica-etiqueta">Disponibles</span>
+        </div>
+        <div class="metrica-tarjeta metrica-tarjeta--rentado">
+            <span class="metrica-valor">{{ equipos_rentados }}</span>
+            <span class="metrica-etiqueta">Rentados</span>
+        </div>
+        <div class="metrica-tarjeta metrica-tarjeta--mantenimiento">
+            <span class="metrica-valor">{{ equipos_mantenimiento }}</span>
+            <span class="metrica-etiqueta">En mantenimiento</span>
+        </div>
+    </div>
+</section>
+
+<section class="dashboard-metricas">
+    <h2 class="dashboard-seccion-titulo">Rentas activas</h2>
+    <div class="metricas-grid">
+        <div class="metrica-tarjeta">
+            <span class="metrica-valor">{{ total_rentas_activas }}</span>
+            <span class="metrica-etiqueta">Rentas activas</span>
+        </div>
+        <div class="metrica-tarjeta metrica-tarjeta--advertencia">
+            <span class="metrica-valor">{{ rentas_por_vencer }}</span>
+            <span class="metrica-etiqueta">Por vencer (≤ 3 días)</span>
+        </div>
+        <div class="metrica-tarjeta metrica-tarjeta--urgente">
+            <span class="metrica-valor">{{ rentas_vencidas }}</span>
+            <span class="metrica-etiqueta">Vencidas sin cerrar</span>
+        </div>
+    </div>
+</section>
+
+<section class="dashboard-metricas">
+    <h2 class="dashboard-seccion-titulo">Sistema</h2>
+    <div class="metricas-grid">
+        <div class="metrica-tarjeta metrica-tarjeta--pendiente">
+            <span class="metrica-valor">{{ solicitudes_pendientes }}</span>
+            <span class="metrica-etiqueta">Solicitudes pendientes</span>
+        </div>
+        <div class="metrica-tarjeta">
+            <span class="metrica-valor">{{ usuarios_count }}</span>
+            <span class="metrica-etiqueta">Usuarios registrados</span>
+        </div>
+    </div>
+</section>
+
+{% if solicitudes_recientes %}
+<section class="dashboard-seccion">
+    <h2 class="dashboard-seccion-titulo">Solicitudes pendientes recientes</h2>
+    <table class="tabla-solicitudes">
+        <thead>
+            <tr>
+                <th scope="col">Tipo</th>
+                <th scope="col">Solicitante</th>
+                <th scope="col">Equipo</th>
+                <th scope="col">Fecha</th>
+                <th scope="col">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for solicitud in solicitudes_recientes %}
+            <tr class="tabla-fila">
+                <td class="tabla-celda">{{ solicitud.get_tipo_display }}</td>
+                <td class="tabla-celda">{{ solicitud.solicitante.username }}</td>
+                <td class="tabla-celda">{{ solicitud.equipo.nombre|default:"—" }}</td>
+                <td class="tabla-celda">{{ solicitud.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                <td class="tabla-celda tabla-celda--acciones">
+                    <form method="post" action="{% url 'panel_admin:aprobar' solicitud.pk %}" class="form-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-tabla btn-tabla--aprobar">Aprobar</button>
+                    </form>
+                    <form method="post" action="{% url 'panel_admin:rechazar' solicitud.pk %}" class="form-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-tabla btn-tabla--rechazar">Rechazar</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p class="dashboard-ver-todas">
+        <a href="{% url 'panel_admin:solicitudes' %}" class="enlace-accion">Ver todas las solicitudes &rarr;</a>
+    </p>
+</section>
+{% endif %}
+
+<section class="dashboard-accesos-rapidos">
+    <h2 class="dashboard-seccion-titulo">Accesos rápidos</h2>
+    <nav class="accesos-grid" aria-label="Accesos rápidos">
+        <a href="{% url 'inventario:crear' %}" class="acceso-tarjeta">Nuevo equipo</a>
+        <a href="{% url 'rentas:nueva' %}" class="acceso-tarjeta">Nueva renta</a>
+        <a href="{% url 'panel_admin:usuario_nuevo' %}" class="acceso-tarjeta">Nuevo usuario</a>
+        <a href="{% url 'reportes:panel' %}" class="acceso-tarjeta">Generar reporte</a>
+    </nav>
+</section>
+{% endblock %}

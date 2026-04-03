@@ -1,0 +1,1762 @@
+/* =====================================================
+   RYV Rentas — CSS Principal
+   Clases semánticas listas para que Sebastián
+   conecte el diseño de Figma encima.
+   ===================================================== */
+
+/* --- Reset mínimo --- */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #1a1a1a;
+    background-color: #f5f5f5;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* --- Layout autenticado --- */
+.layout-autenticado {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.layout-contenedor {
+    display: flex;
+    flex: 1;
+}
+
+.layout-contenido {
+    flex: 1;
+    padding: 1.5rem;
+    overflow-y: auto;
+}
+
+.contenido-interior {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* --- Layout público --- */
+.layout-publico {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f0f0f0;
+}
+
+/* --- Navbar --- */
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.5rem;
+    background-color: #2c3e50;
+    color: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.navbar-logo {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.navbar-acciones {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.navbar-usuario {
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.navbar-alerta-contador {
+    background-color: #e74c3c;
+    color: #fff;
+    border-radius: 50%;
+    width: 1.5rem;
+    height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.btn-logout,
+.btn-login {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.5);
+    color: #fff;
+    padding: 0.3rem 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.btn-logout:hover,
+.btn-login:hover {
+    background-color: rgba(255,255,255,0.1);
+}
+
+/* --- Sidebar --- */
+.sidebar {
+    width: 220px;
+    min-height: 100%;
+    background-color: #34495e;
+    color: #ecf0f1;
+    padding: 1rem 0;
+    flex-shrink: 0;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.sidebar-seccion {
+    margin-bottom: 1rem;
+}
+
+.sidebar-seccion-titulo {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #95a5a6;
+    padding: 0.5rem 1rem 0.25rem;
+}
+
+.sidebar-lista {
+    list-style: none;
+}
+
+.sidebar-enlace {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+    color: #bdc3c7;
+    font-size: 0.95rem;
+    transition: background-color 0.15s;
+}
+
+.sidebar-enlace:hover {
+    background-color: rgba(255,255,255,0.08);
+    color: #fff;
+    text-decoration: none;
+}
+
+.badge-pendientes {
+    background-color: #e74c3c;
+    color: #fff;
+    border-radius: 10px;
+    padding: 0.1rem 0.45rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+/* --- Encabezado de página --- */
+.pagina-encabezado {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.encabezado-izquierda {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.pagina-titulo {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.pagina-acciones {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.pagina-descripcion {
+    margin-bottom: 1rem;
+    color: #555;
+}
+
+.enlace-volver {
+    font-size: 0.9rem;
+    color: #555;
+    margin-bottom: 0.25rem;
+    display: inline-block;
+}
+
+/* --- Botones --- */
+.btn-primario {
+    display: inline-block;
+    padding: 0.5rem 1.25rem;
+    background-color: #2980b9;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.btn-primario:hover {
+    background-color: #2471a3;
+    text-decoration: none;
+}
+
+.btn-secundario {
+    display: inline-block;
+    padding: 0.5rem 1.25rem;
+    background-color: #ecf0f1;
+    color: #2c3e50;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+.btn-secundario:hover {
+    background-color: #dde4e6;
+    text-decoration: none;
+}
+
+.btn-peligro {
+    display: inline-block;
+    padding: 0.5rem 1.25rem;
+    background-color: #e74c3c;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+.btn-peligro:hover {
+    background-color: #c0392b;
+    text-decoration: none;
+}
+
+.btn-bloque {
+    display: block;
+    width: 100%;
+}
+
+.btn-grande {
+    padding: 0.75rem 2rem;
+    font-size: 1.1rem;
+}
+
+/* --- Botones de tabla --- */
+.btn-tabla {
+    display: inline-block;
+    padding: 0.25rem 0.6rem;
+    border-radius: 3px;
+    font-size: 0.85rem;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.btn-tabla--ver {
+    background-color: #2980b9;
+    color: #fff;
+}
+
+.btn-tabla--editar {
+    background-color: #f39c12;
+    color: #fff;
+}
+
+.btn-tabla--eliminar {
+    background-color: #e74c3c;
+    color: #fff;
+}
+
+.btn-tabla--aprobar {
+    background-color: #27ae60;
+    color: #fff;
+}
+
+.btn-tabla--rechazar {
+    background-color: #e74c3c;
+    color: #fff;
+}
+
+.btn-tabla--finalizar {
+    background-color: #8e44ad;
+    color: #fff;
+}
+
+.btn-tabla--eliminar {
+    background-color: #e74c3c;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-tabla--solicitar {
+    background-color: #16a085;
+    color: #fff;
+}
+
+.btn-tabla--rentar {
+    background-color: #27ae60;
+    color: #fff;
+}
+
+.btn-tabla--descargar {
+    background-color: #2980b9;
+    color: #fff;
+}
+
+.btn-tabla:hover {
+    opacity: 0.85;
+    text-decoration: none;
+}
+
+/* --- Filtros --- */
+.filtros-seccion {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+.filtros-formulario {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.filtros-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 160px;
+}
+
+.filtros-etiqueta {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #555;
+}
+
+.filtros-acciones {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-end;
+}
+
+/* --- Inputs y formularios --- */
+.input-campo {
+    padding: 0.45rem 0.65rem;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    width: 100%;
+    background-color: #fff;
+}
+
+.input-campo:focus {
+    outline: 2px solid #2980b9;
+    border-color: #2980b9;
+}
+
+.input-checkbox {
+    margin-right: 0.5rem;
+}
+
+.formulario-contenedor {
+    max-width: 680px;
+}
+
+.formulario {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.campo-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-bottom: 1rem;
+}
+
+.campo-grupo--error .input-campo {
+    border-color: #e74c3c;
+}
+
+.campo-etiqueta {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.campo-requerido {
+    color: #e74c3c;
+    margin-left: 2px;
+}
+
+.campo-ayuda {
+    font-size: 0.82rem;
+    color: #777;
+}
+
+.campo-ayuda--advertencia {
+    color: #e67e22;
+}
+
+.campo-error {
+    font-size: 0.85rem;
+    color: #e74c3c;
+}
+
+.campo-errores-globales {
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background-color: #fdf2f2;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+}
+
+.formulario-acciones {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.formulario-fieldset {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.formulario-fieldset-titulo {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #555;
+    padding: 0 0.5rem;
+}
+
+.formulario-detalles {
+    margin-bottom: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 0.75rem;
+}
+
+.formulario-detalles-titulo {
+    cursor: pointer;
+    font-weight: 600;
+    color: #2980b9;
+    font-size: 0.9rem;
+}
+
+.formulario-detalles-contenido {
+    margin-top: 1rem;
+}
+
+.formulario-titulo {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: #2c3e50;
+}
+
+/* --- Tablas --- */
+.tabla-contenedor {
+    overflow-x: auto;
+    margin-bottom: 1rem;
+}
+
+.tabla-inventario,
+.tabla-rentas,
+.tabla-historial,
+.tabla-solicitudes,
+.tabla-usuarios,
+.tabla-reportes {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+th {
+    background-color: #2c3e50;
+    color: #fff;
+    padding: 0.65rem 0.85rem;
+    text-align: left;
+    font-size: 0.88rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.tabla-fila:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.tabla-fila:hover {
+    background-color: #eaf3fb;
+}
+
+.tabla-celda {
+    padding: 0.6rem 0.85rem;
+    font-size: 0.92rem;
+    border-bottom: 1px solid #eee;
+    vertical-align: middle;
+}
+
+.tabla-celda--centrado {
+    text-align: center;
+}
+
+.tabla-celda--acciones {
+    display: flex;
+    gap: 0.35rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.tabla-celda--monto {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.tabla-celda--comentario {
+    max-width: 250px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tabla-celda--nombre-archivo {
+    font-family: monospace;
+    font-size: 0.85rem;
+}
+
+.tabla-celda-nota {
+    font-size: 0.85rem;
+    color: #777;
+    font-style: italic;
+}
+
+.tabla-fila--vencida {
+    background-color: #fdf2f2 !important;
+}
+
+.tabla-fila--por-vencer {
+    background-color: #fef9e7 !important;
+}
+
+.tabla-fila--actual {
+    background-color: #eaf6ee !important;
+}
+
+.form-inline {
+    display: inline;
+    margin: 0;
+}
+
+/* --- Badges --- */
+.badge-estado {
+    display: inline-block;
+    padding: 0.2rem 0.55rem;
+    border-radius: 3px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.badge-estado--disponible {
+    background-color: #d4efdf;
+    color: #1e8449;
+}
+
+.badge-estado--rentado {
+    background-color: #d6eaf8;
+    color: #1a5276;
+}
+
+.badge-estado--mantenimiento {
+    background-color: #fdebd0;
+    color: #784212;
+}
+
+.badge-estado--activa {
+    background-color: #d6eaf8;
+    color: #1a5276;
+}
+
+.badge-estado--finalizada {
+    background-color: #d4efdf;
+    color: #1e8449;
+}
+
+.badge-estado--vencida {
+    background-color: #fadbd8;
+    color: #922b21;
+}
+
+.badge-vencimiento {
+    display: inline-block;
+    padding: 0.15rem 0.45rem;
+    border-radius: 3px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-left: 0.4rem;
+}
+
+.badge-vencimiento--proxima {
+    background-color: #fef9e7;
+    color: #7d6608;
+    border: 1px solid #f9e79f;
+}
+
+.badge-vencimiento--vencida {
+    background-color: #fadbd8;
+    color: #922b21;
+    border: 1px solid #f5b7b1;
+}
+
+.badge-rol {
+    display: inline-block;
+    padding: 0.15rem 0.45rem;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.badge-rol--administrador {
+    background-color: #d5d8dc;
+    color: #2c3e50;
+}
+
+.badge-rol--empleado {
+    background-color: #d6eaf8;
+    color: #1a5276;
+}
+
+.badge-activo {
+    color: #1e8449;
+    font-weight: 600;
+}
+
+.badge-inactivo {
+    color: #922b21;
+    font-weight: 600;
+}
+
+.badge-yo {
+    font-size: 0.78rem;
+    color: #888;
+}
+
+.badge-tipo-solicitud,
+.badge-tipo-reporte {
+    display: inline-block;
+    font-size: 0.82rem;
+    padding: 0.15rem 0.45rem;
+    border-radius: 3px;
+    background-color: #e8eaf0;
+    color: #2c3e50;
+}
+
+.badge-estado-solicitud {
+    display: inline-block;
+    padding: 0.2rem 0.55rem;
+    border-radius: 3px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.badge-estado-solicitud--pendiente {
+    background-color: #fef9e7;
+    color: #7d6608;
+}
+
+.badge-estado-solicitud--aprobada {
+    background-color: #d4efdf;
+    color: #1e8449;
+}
+
+.badge-estado-solicitud--rechazada {
+    background-color: #fadbd8;
+    color: #922b21;
+}
+
+/* --- Mensajes Django --- */
+.mensajes-contenedor {
+    margin-bottom: 1rem;
+}
+
+.mensaje {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.65rem 1rem;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+    font-size: 0.92rem;
+    border-left: 4px solid transparent;
+}
+
+.mensaje--success,
+.mensaje--info {
+    background-color: #d4efdf;
+    border-left-color: #27ae60;
+    color: #1e8449;
+}
+
+.mensaje--error,
+.mensaje--warning {
+    background-color: #fadbd8;
+    border-left-color: #e74c3c;
+    color: #922b21;
+}
+
+.mensaje-cerrar {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    color: inherit;
+    opacity: 0.6;
+    padding: 0 0.25rem;
+}
+
+.mensaje-cerrar:hover {
+    opacity: 1;
+}
+
+/* --- Alertas banner --- */
+.alertas-banner {
+    margin-bottom: 1rem;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.alerta-grupo {
+    padding: 0.75rem 1rem;
+}
+
+.alerta-grupo--urgente {
+    background-color: #fadbd8;
+    border-left: 4px solid #e74c3c;
+}
+
+.alerta-grupo--advertencia {
+    background-color: #fef9e7;
+    border-left: 4px solid #f39c12;
+}
+
+.alerta-titulo {
+    font-size: 0.9rem;
+    color: #2c3e50;
+}
+
+.alerta-lista {
+    list-style: none;
+    margin-top: 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.alerta-item--vencida .alerta-enlace {
+    color: #922b21;
+    font-size: 0.88rem;
+}
+
+.alerta-item--proxima .alerta-enlace {
+    color: #7d6608;
+    font-size: 0.88rem;
+}
+
+.alerta-informacion {
+    padding: 0.75rem 1rem;
+    background-color: #d6eaf8;
+    border-left: 4px solid #2980b9;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    font-size: 0.92rem;
+    color: #1a5276;
+}
+
+.alerta-vencida {
+    padding: 0.75rem 1rem;
+    background-color: #fadbd8;
+    border-left: 4px solid #e74c3c;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    font-size: 0.92rem;
+    color: #922b21;
+}
+
+.alerta-por-vencer {
+    padding: 0.75rem 1rem;
+    background-color: #fef9e7;
+    border-left: 4px solid #f39c12;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    font-size: 0.92rem;
+    color: #7d6608;
+}
+
+.alerta-confirmacion {
+    padding: 1rem;
+    background-color: #fef9e7;
+    border: 1px solid #f39c12;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+/* --- Estado vacío --- */
+.estado-vacio {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #777;
+}
+
+.estado-vacio-mensaje {
+    font-size: 1.05rem;
+    margin-bottom: 1rem;
+}
+
+/* --- Detalle --- */
+.detalle-contenedor {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.detalle-seccion {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 1.25rem;
+}
+
+.detalle-seccion--accion {
+    background-color: #f0f8ff;
+    border-color: #b0d0e8;
+}
+
+.detalle-seccion-titulo {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.detalle-lista {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 0.5rem 1rem;
+}
+
+.detalle-etiqueta {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #555;
+}
+
+.detalle-valor {
+    font-size: 0.95rem;
+    color: #222;
+}
+
+.detalle-valor--monto {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.renta-activa-tarjeta {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 0.75rem;
+    background-color: #eaf3fb;
+    border-radius: 4px;
+}
+
+/* --- Paginación --- */
+.paginacion {
+    margin-top: 1rem;
+}
+
+.paginacion-lista {
+    display: flex;
+    list-style: none;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.paginacion-enlace {
+    padding: 0.4rem 0.75rem;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    background-color: #fff;
+    color: #2980b9;
+    font-size: 0.9rem;
+}
+
+.paginacion-enlace:hover {
+    background-color: #eaf3fb;
+    text-decoration: none;
+}
+
+.paginacion-item--actual {
+    font-size: 0.9rem;
+    color: #555;
+    padding: 0.4rem 0.5rem;
+}
+
+/* --- Dashboard métricas --- */
+.dashboard-metricas {
+    margin-bottom: 1.5rem;
+}
+
+.dashboard-seccion-titulo {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 0.75rem;
+}
+
+.metricas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.metrica-tarjeta {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.metrica-valor {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    line-height: 1;
+}
+
+.metrica-etiqueta {
+    font-size: 0.82rem;
+    color: #777;
+    margin-top: 0.35rem;
+}
+
+.metrica-tarjeta--disponible .metrica-valor { color: #1e8449; }
+.metrica-tarjeta--rentado .metrica-valor { color: #1a5276; }
+.metrica-tarjeta--mantenimiento .metrica-valor { color: #784212; }
+.metrica-tarjeta--advertencia .metrica-valor { color: #7d6608; }
+.metrica-tarjeta--urgente .metrica-valor { color: #922b21; }
+.metrica-tarjeta--pendiente .metrica-valor { color: #7d6608; }
+
+.dashboard-seccion {
+    margin-bottom: 1.5rem;
+}
+
+.dashboard-ver-todas,
+.reporte-ver-todos {
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+}
+
+.enlace-accion {
+    color: #2980b9;
+    font-weight: 600;
+}
+
+/* --- Accesos rápidos --- */
+.accesos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+}
+
+.acceso-tarjeta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #2c3e50;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.acceso-tarjeta:hover {
+    background-color: #eaf3fb;
+    border-color: #2980b9;
+    text-decoration: none;
+}
+
+/* --- Reportes --- */
+.reportes-contenedor {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.reporte-seccion {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 1.25rem;
+}
+
+.reporte-seccion-titulo {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.reporte-descripcion {
+    font-size: 0.9rem;
+    color: #555;
+    margin-bottom: 1rem;
+}
+
+/* --- Landing --- */
+.landing-contenedor {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+    text-align: center;
+}
+
+.landing-encabezado {
+    margin-bottom: 2.5rem;
+}
+
+.landing-titulo {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #2c3e50;
+}
+
+.landing-subtitulo {
+    font-size: 1.1rem;
+    color: #555;
+    margin-top: 0.5rem;
+}
+
+.landing-bienvenida {
+    margin-bottom: 2rem;
+}
+
+.landing-bienvenida h2 {
+    font-size: 1.4rem;
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
+}
+
+.landing-caracteristicas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    text-align: left;
+}
+
+.caracteristica {
+    padding: 1rem;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+.caracteristica h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 0.35rem;
+}
+
+.landing-pie {
+    color: #888;
+    font-size: 0.9rem;
+}
+
+/* --- Login --- */
+.login-contenedor {
+    width: 100%;
+    max-width: 420px;
+    padding: 1rem;
+}
+
+.login-caja {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.login-encabezado {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.login-titulo {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #2c3e50;
+}
+
+.login-subtitulo {
+    color: #777;
+    font-size: 0.95rem;
+    margin-top: 0.25rem;
+}
+
+.login-formulario {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* --- Error pages --- */
+.layout-error {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f5f5f5;
+}
+
+.error-contenedor {
+    text-align: center;
+    padding: 2rem;
+}
+
+.error-codigo {
+    font-size: 5rem;
+    font-weight: 800;
+    color: #bdc3c7;
+    line-height: 1;
+}
+
+.error-titulo {
+    font-size: 1.5rem;
+    color: #2c3e50;
+    margin: 0.5rem 0;
+}
+
+.error-mensaje {
+    color: #666;
+    margin-bottom: 1.5rem;
+}
+
+/* --- Modal --- */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-overlay[hidden] {
+    display: none;
+}
+
+.modal-caja {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 1.5rem 2rem;
+    max-width: 420px;
+    width: 90%;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+}
+
+.modal-titulo {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 0.75rem;
+}
+
+.modal-mensaje {
+    font-size: 0.95rem;
+    color: #444;
+    margin-bottom: 1.25rem;
+}
+
+.modal-acciones {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+}
+
+/* --- Contexto / referencias --- */
+.contexto-equipo,
+.contexto-usuario {
+    padding: 0.65rem 1rem;
+    background-color: #eaf3fb;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    font-size: 0.92rem;
+}
+
+.checkbox-etiqueta {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+/* ===================================================
+   VISTA TOGGLE (tarjetas / tabla)
+   =================================================== */
+.vista-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+}
+
+.vista-toggle-label {
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.btn-vista {
+    padding: 0.35rem 0.9rem;
+    border: 1.5px solid #bdc3c7;
+    border-radius: 4px;
+    background: #fff;
+    color: #555;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.btn-vista:hover {
+    border-color: #2980b9;
+    color: #2980b9;
+}
+
+.btn-vista--activa {
+    background: #2980b9;
+    border-color: #2980b9;
+    color: #fff;
+    font-weight: 600;
+}
+
+/* ===================================================
+   TARJETAS DE EQUIPOS DISPONIBLES
+   =================================================== */
+.disponibles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.disponible-tarjeta {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    transition: box-shadow 0.2s, transform 0.15s;
+}
+
+.disponible-tarjeta:hover {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
+}
+
+.disponible-tarjeta-cabeza {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.disponible-tarjeta-nombre {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0;
+    line-height: 1.3;
+}
+
+.disponible-tarjeta-badge {
+    flex-shrink: 0;
+    background: #27ae60;
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    white-space: nowrap;
+}
+
+.disponible-tarjeta-desc {
+    font-size: 0.88rem;
+    color: #666;
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* Stats row dentro de la tarjeta */
+.disponible-tarjeta-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.4rem;
+    background: #f7f9fc;
+    border-radius: 6px;
+    padding: 0.65rem 0.5rem;
+}
+
+.disponible-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+}
+
+.disponible-stat--destacado .disponible-stat-num--disp {
+    background: #27ae60;
+    color: #fff;
+    border-radius: 4px;
+    padding: 0 0.3rem;
+}
+
+.disponible-stat-num {
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.disponible-stat-num--total  { color: #2c3e50; }
+.disponible-stat-num--renta  { color: #e67e22; }
+.disponible-stat-num--mant   { color: #8e44ad; }
+.disponible-stat-num--disp   { color: #27ae60; }
+
+.disponible-stat-label {
+    font-size: 0.7rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+/* Acciones de la tarjeta */
+.disponible-tarjeta-acciones {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-top: auto;
+}
+
+.btn-tarjeta-accion {
+    flex: 1;
+    text-align: center;
+    font-size: 0.88rem;
+    padding: 0.5rem 0.75rem;
+}
+
+/* Badges numéricos en tabla inventario */
+.badge-numero {
+    display: inline-block;
+    min-width: 1.5rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.badge-numero--renta { background: #fdebd0; color: #e67e22; }
+.badge-numero--mant  { background: #f5eef8; color: #8e44ad; }
+
+/* ===================================================
+   FORMULARIO SOLICITUD CAMBIO INVENTARIO
+   =================================================== */
+.solicitud-seccion {
+    border: 1.5px solid #d5e8f7;
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+    background: #f0f7ff;
+}
+
+.solicitud-seccion-titulo {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1a5276;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.solicitud-seccion-icono {
+    font-size: 1.1rem;
+}
+
+.solicitud-datos-actuales {
+    background: #fff;
+    border: 1px solid #c8dcef;
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    margin-top: 0.75rem;
+}
+
+.solicitud-datos-titulo {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #2980b9;
+    margin-bottom: 0.75rem;
+}
+
+/* Panel de info de baja */
+.solicitud-info-baja {
+    margin-top: 0.75rem;
+}
+
+.baja-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 0.75rem;
+    background: #fff;
+    border: 1px solid #f5cba7;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.baja-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.baja-info-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #888;
+    letter-spacing: 0.04em;
+}
+
+.baja-info-valor {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.baja-info-item--destacado {
+    background: #eafaf1;
+    border-radius: 6px;
+    padding: 0.4rem 0.6rem;
+}
+
+.baja-info-valor--disp {
+    color: #1e8449;
+}
+
+.campo-ayuda {
+    font-size: 0.8rem;
+    color: #888;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+.baja-advertencia {
+    font-size: 0.85rem;
+    color: #935116;
+    background: #fef5e7;
+    border: 1px solid #f5cba7;
+    border-radius: 6px;
+    padding: 0.65rem 1rem;
+    margin: 0;
+}
+
+/* ===================================================
+   LIQUIDACIÓN DE RENTA AL CIERRE
+   =================================================== */
+.liquidacion-resumen {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.liquidacion-fila {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.95rem;
+}
+
+.liquidacion-fila--total {
+    border-top: 1px solid #dee2e6;
+    padding-top: 0.5rem;
+    margin-top: 0.25rem;
+    font-weight: 700;
+    font-size: 1.05rem;
+}
+
+.liquidacion-etiqueta {
+    color: #555;
+}
+
+.liquidacion-valor {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.liquidacion-valor--pagado {
+    color: #1e8449;
+}
+
+.liquidacion-valor--saldo {
+    color: #c0392b;
+    font-size: 1.1rem;
+}
+
+.liquidacion-cambio {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #eafaf1;
+    border: 1px solid #a9dfbf;
+    border-radius: 6px;
+    padding: 0.65rem 1rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.liquidacion-valor--cambio {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.badge-metodo-pago {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: #eaf0fb;
+    color: #2471a3;
+    border: 1px solid #aed6f1;
+    border-radius: 4px;
+    padding: 0.1rem 0.45rem;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+}
+
+/* ===================================================
+   IMAGEN DE EQUIPO EN DETALLE
+   =================================================== */
+.detalle-imagen-contenedor {
+    margin-bottom: 1.5rem;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #f5f6f7;
+    width: 300px;
+    max-width: 100%;
+    height: 300px;
+    align-self: flex-start;
+}
+
+.detalle-equipo-imagen {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* ===================================================
+   GRID DE INVENTARIO COMPLETO
+   =================================================== */
+.inventario-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.inv-tarjeta {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.07);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding-bottom: 1rem;
+    position: relative;
+}
+
+/* Borde superior según estado */
+.inv-tarjeta::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    border-radius: 10px 10px 0 0;
+}
+.inv-tarjeta--disponible::before { background: #27ae60; }
+.inv-tarjeta--parcial::before    { background: #f39c12; }
+.inv-tarjeta--rentado::before    { background: #e74c3c; }
+.inv-tarjeta--mantenimiento::before { background: #95a5a6; }
+
+.inv-tarjeta-imagen {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+}
+
+.inv-tarjeta-imagen-placeholder {
+    width: 100%;
+    height: 180px;
+    background: linear-gradient(135deg, #ecf0f1 0%, #d5d8dc 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
+    font-size: 2.5rem;
+}
+
+.inv-tarjeta-cabeza {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem 0;
+}
+
+.inv-tarjeta-nombre {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.inv-tarjeta-desc {
+    font-size: 0.8rem;
+    color: #777;
+    padding: 0 1rem;
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* ===================================================
+   TARJETAS DISPONIBLES — MEJORAS ESTÉTICAS
+   =================================================== */
+.disponible-tarjeta {
+    position: relative;
+    overflow: hidden;
+}
+
+.disponible-tarjeta::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #27ae60, #2ecc71);
+    border-radius: 10px 10px 0 0;
+}
+
+.disponible-tarjeta-imagen {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 6px;
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+.disponible-tarjeta-imagen-placeholder {
+    width: 100%;
+    height: 180px;
+    background: linear-gradient(135deg, #ecf0f1 0%, #d5d8dc 100%);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.25rem;
+    color: #aaa;
+    font-size: 2.5rem;
+}

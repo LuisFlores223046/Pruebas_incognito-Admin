@@ -1,0 +1,306 @@
+"""Vistas para el módulo de rentas."""
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from django.core.paginator import Paginator
+from datetime import date
+from .models import Renta, Cliente
+from .forms import RentaForm, SolicitudRentaForm, FinalizarRentaForm
+from inventario.models import Equipo
+from authentication.decorators import admin_required, empleado_o_admin
+from solicitudes.models import Solicitud
+
+
+@empleado_o_admin
+def rentas_activas(request):
+    """Lista rentas activas con filtros por cliente y equipo."""
+    rentas = Renta.objects.filter(
+        estado='activa'
+    ).select_related('equipo', 'cliente', 'registrada_por')
+
+    cliente_nombre = request.GET.get('cliente', '').strip()
+    equipo_nombre = request.GET.get('equipo', '').strip()
+
+    if cliente_nombre:
+        rentas = rentas.filter(
+            cliente__nombre__icontains=cliente_nombre
+        )
+    if equipo_nombre:
+        rentas = rentas.filter(
+            equipo__nombre__icontains=equipo_nombre
+        )
+
+    rentas = rentas.order_by('fecha_vencimiento')
+
+    paginator = Paginator(rentas, 20)
+    page = request.GET.get('page', 1)
+    rentas_page = paginator.get_page(page)
+
+    contexto = {
+        'rentas': rentas_page,
+        'filtro_cliente': cliente_nombre,
+        'filtro_equipo': equipo_nombre,
+        'hoy': date.today(),
+    }
+    return render(request, 'rentas/activas.html', contexto)
+
+
+@empleado_o_admin
+def detalle_renta(request, pk):
+    """Muestra el detalle de una renta."""
+    renta = get_object_or_404(
+        Renta.objects.select_related(
+            'equipo', 'cliente', 'registrada_por'
+        ),
+        pk=pk,
+    )
+    form_finalizar = None
+    if (
+        renta.estado == 'activa'
+        and request.user.es_administrador()
+    ):
+        form_finalizar = FinalizarRentaForm()
+
+    contexto = {
+        'renta': renta,
+        'hoy': date.today(),
+        'form_finalizar': form_finalizar,
+    }
+    return render(request, 'rentas/detalle.html', contexto)
+
+
+@admin_required
+def nueva_renta(request):
+    """Crea una nueva renta directamente (solo admin)."""
+    equipo_pk = request.GET.get('equipo')
+    equipo_inicial = None
+    if equipo_pk:
+        equipo_inicial = get_object_or_404(
+            Equipo, pk=equipo_pk, activo=True
+        )
+
+    if request.method == 'POST':
+        form = RentaForm(request.POST)
+        if form.is_valid():
+            try:
+                equipo = form.cleaned_data['equipo']
+                cantidad = form.cleaned_data.get('cantidad') or 1
+
+                # Verificar disponibilidad
+                if not equipo.tiene_disponibles(cantidad):
+                    messages.error(
+                        request,
+                        f'Solo hay {equipo.cantidad_disponible} '
+                        f'unidad(es) disponible(s) de "{equipo.nombre}".',
+                    )
+                    return render(
+                        request,
+                        'rentas/nueva.html',
+                        {'form': form},
+                    )
+
+                cliente, _ = Cliente.objects.get_or_create(
+                    nombre=form.cleaned_data['cliente_nombre'],
+                    telefono=form.cleaned_data['cliente_telefono'],
+                    defaults={
+                        'direccion': form.cleaned_data.get(
+                            'cliente_direccion', ''
+                        ),
+                        'correo': form.cleaned_data.get(
+                            'cliente_correo', ''
+                        ),
+                    },
+                )
+
+                renta = Renta.objects.create(
+                    equipo=equipo,
+                    cliente=cliente,
+                    registrada_por=request.user,
+                    cantidad=cantidad,
+                    fecha_inicio=form.cleaned_data['fecha_inicio'],
+                    fecha_vencimiento=(
+                        form.cleaned_data['fecha_vencimiento']
+                    ),
+                    precio=form.cleaned_data['precio'],
+                    deposito=form.cleaned_data.get('deposito') or 0,
+                    metodo_pago=form.cleaned_data.get('metodo_pago', ''),
+                    notas=form.cleaned_data.get('notas', ''),
+                )
+
+                # RN-002: actualizar contador de unidades en renta
+                equipo.cantidad_en_renta += cantidad
+                equipo.save()
+
+                messages.success(
+                    request,
+                    f'Renta registrada: {cantidad} unidad(es) de '
+                    f'"{equipo.nombre}" para {cliente.nombre}.',
+                )
+                # Redirigir a rentas activas
+                return redirect('rentas:lista')
+
+            except Exception as e:
+                messages.error(
+                    request,
+                    'Ocurrió un error al crear la renta. '
+                    'Intenta de nuevo.',
+                )
+    else:
+        initial = {}
+        if equipo_inicial:
+            initial['equipo'] = equipo_inicial
+        form = RentaForm(initial=initial)
+
+    return render(request, 'rentas/nueva.html', {'form': form})
+
+
+@admin_required
+def finalizar_renta(request, pk):
+    """Finaliza una renta y libera las unidades del equipo (admin). RN-003."""
+    renta = get_object_or_404(Renta, pk=pk, estado='activa')
+
+    if request.method == 'POST':
+        form = FinalizarRentaForm(request.POST)
+        if form.is_valid():
+            try:
+                monto_recibido = form.cleaned_data.get('monto_recibido')
+                renta.estado = 'finalizada'
+                renta.fecha_devolucion = date.today()
+                renta.monto_recibido = monto_recibido
+                renta.metodo_pago_cierre = form.cleaned_data.get('metodo_pago_cierre', '')
+                if monto_recibido is not None:
+                    from decimal import Decimal
+                    saldo = max(renta.precio - renta.deposito, Decimal('0'))
+                    renta.cambio_entregado = monto_recibido - saldo
+                notas_dev = form.cleaned_data.get(
+                    'notas_devolucion', ''
+                )
+                if notas_dev:
+                    separador = '\n' if renta.notas else ''
+                    renta.notas = (
+                        renta.notas
+                        + separador
+                        + '[Devolución] '
+                        + notas_dev
+                    )
+                renta.save()
+
+                # RN-003: liberar unidades
+                equipo = renta.equipo
+                equipo.cantidad_en_renta = max(
+                    0, equipo.cantidad_en_renta - renta.cantidad
+                )
+                equipo.save()
+
+                messages.success(
+                    request,
+                    f'Renta finalizada. {renta.cantidad} unidad(es) de '
+                    f'"{equipo.nombre}" liberada(s). '
+                    f'Disponibles ahora: {equipo.cantidad_disponible}.',
+                )
+                return redirect('historial:detalle', pk=renta.pk)
+
+            except Exception:
+                messages.error(
+                    request,
+                    'Error al finalizar la renta. Intenta de nuevo.',
+                )
+
+    return redirect('rentas:detalle', pk=pk)
+
+
+@empleado_o_admin
+def solicitar_renta(request):
+    """El empleado solicita una nueva renta (RN-008)."""
+    if request.user.es_administrador():
+        return redirect('rentas:nueva')
+
+    if request.method == 'POST':
+        form = SolicitudRentaForm(request.POST)
+        if form.is_valid():
+            equipo = form.cleaned_data['equipo']
+            cantidad = form.cleaned_data.get('cantidad') or 1
+            datos_json = {
+                'cliente_nombre': (
+                    form.cleaned_data['cliente_nombre']
+                ),
+                'cliente_telefono': (
+                    form.cleaned_data['cliente_telefono']
+                ),
+                'cliente_direccion': form.cleaned_data.get(
+                    'cliente_direccion', ''
+                ),
+                'cliente_correo': form.cleaned_data.get(
+                    'cliente_correo', ''
+                ),
+                'cantidad': cantidad,
+                'fecha_inicio': str(
+                    form.cleaned_data['fecha_inicio']
+                ),
+                'fecha_vencimiento': str(
+                    form.cleaned_data['fecha_vencimiento']
+                ),
+                'precio': str(form.cleaned_data['precio']),
+                'deposito': str(
+                    form.cleaned_data.get('deposito') or 0
+                ),
+                'metodo_pago': form.cleaned_data.get('metodo_pago', ''),
+                'notas': form.cleaned_data.get('notas', ''),
+            }
+
+            Solicitud.objects.create(
+                tipo='nueva_renta',
+                solicitante=request.user,
+                equipo=equipo,
+                comentario=form.cleaned_data['comentario'],
+                datos_json=datos_json,
+            )
+            messages.success(
+                request,
+                'Solicitud de renta enviada al administrador.',
+            )
+            return redirect('rentas:lista')
+    else:
+        equipo_pk = request.GET.get('equipo')
+        initial = {}
+        if equipo_pk:
+            equipo_obj = get_object_or_404(
+                Equipo, pk=equipo_pk, activo=True
+            )
+            initial['equipo'] = equipo_obj
+        form = SolicitudRentaForm(initial=initial)
+
+    return render(request, 'rentas/solicitar.html', {'form': form})
+
+
+@empleado_o_admin
+def solicitar_cierre(request, pk):
+    """El empleado solicita el cierre de una renta (RN-008)."""
+    if request.user.es_administrador():
+        return redirect('rentas:finalizar', pk=pk)
+
+    renta = get_object_or_404(Renta, pk=pk, estado='activa')
+
+    if request.method == 'POST':
+        comentario = request.POST.get('comentario', '').strip()
+        if not comentario:
+            comentario = 'Solicitud de cierre de renta.'
+
+        Solicitud.objects.create(
+            tipo='cierre_renta',
+            solicitante=request.user,
+            renta=renta,
+            equipo=renta.equipo,
+            comentario=comentario,
+        )
+        messages.success(
+            request,
+            'Solicitud de cierre enviada al administrador.',
+        )
+        return redirect('rentas:detalle', pk=pk)
+
+    contexto = {
+        'renta': renta,
+        'hoy': date.today(),
+        'solicitar_cierre': True,
+    }
+    return render(request, 'rentas/detalle.html', contexto)

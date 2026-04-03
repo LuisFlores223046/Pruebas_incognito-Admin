@@ -1,0 +1,39 @@
+{% extends "base_public.html" %}
+
+{% block title %}RYV Rentas — Sistema de Gestión{% endblock %}
+
+{% block content %}
+<div class="landing-contenedor">
+    <header class="landing-encabezado">
+        <h1 class="landing-titulo">RYV Rentas</h1>
+        <p class="landing-subtitulo">
+            Sistema de gestión de inventario y rentas de herramienta y maquinaria<br>
+            Ciudad Juárez, Chihuahua
+        </p>
+    </header>
+    <main class="landing-principal">
+        <section class="landing-bienvenida">
+            <h2>Bienvenido al sistema</h2>
+            <p>Gestiona el inventario de equipos, registra rentas y consulta el historial de forma sencilla y segura.</p>
+            <a href="{% url 'authentication:login' %}" class="btn-primario btn-grande">Iniciar sesión</a>
+        </section>
+        <section class="landing-caracteristicas">
+            <article class="caracteristica">
+                <h3>Inventario</h3>
+                <p>Control completo de equipos y herramientas disponibles.</p>
+            </article>
+            <article class="caracteristica">
+                <h3>Rentas</h3>
+                <p>Registro y seguimiento de rentas activas con alertas de vencimiento.</p>
+            </article>
+            <article class="caracteristica">
+                <h3>Reportes</h3>
+                <p>Genera reportes en PDF de inventario y rentas por periodo.</p>
+            </article>
+        </section>
+    </main>
+    <footer class="landing-pie">
+        <p>RYV Rentas &mdash; Ciudad Juárez, Chihuahua, México</p>
+    </footer>
+</div>
+{% endblock %}

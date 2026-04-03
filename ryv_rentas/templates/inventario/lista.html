@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}Inventario — RYV Rentas{% endblock %}
+
+{% block content %}
+<div class="pagina-encabezado">
+    <h1 class="pagina-titulo">Inventario de equipos</h1>
+    <div class="pagina-acciones">
+        {% if request.user.es_administrador %}
+            <a href="{% url 'inventario:crear' %}" class="btn-primario">+ Nuevo equipo</a>
+        {% else %}
+            <a href="{% url 'inventario:solicitar' %}" class="btn-secundario">Solicitar alta de equipo</a>
+        {% endif %}
+        <a href="{% url 'inventario:disponibles' %}" class="btn-secundario">Ver disponibles</a>
+    </div>
+</div>
+
+<section class="filtros-seccion">
+    <form method="get" class="filtros-formulario" id="form-filtros">
+        <div class="filtros-campo">
+            <label for="id-filtro-nombre" class="filtros-etiqueta">Nombre</label>
+            <input type="text" id="id-filtro-nombre" name="nombre" value="{{ filtro_nombre }}"
+                   class="input-campo" placeholder="Buscar equipo...">
+        </div>
+        <div class="filtros-acciones">
+            <button type="submit" class="btn-primario">Filtrar</button>
+            <a href="{% url 'inventario:lista' %}" class="btn-secundario">Limpiar</a>
+        </div>
+    </form>
+</section>
+
+{# Toggle de vista #}
+<div class="vista-toggle">
+    <span class="vista-toggle-label">Vista:</span>
+    <button id="btn-tarjetas" class="btn-vista btn-vista--activa" onclick="setVista('tarjetas')">
+        &#9646;&#9646; Tarjetas
+    </button>
+    <button id="btn-tabla" class="btn-vista" onclick="setVista('tabla')">
+        &#9776; Tabla
+    </button>
+</div>
+
+{% if equipos %}
+
+{# ── VISTA TARJETAS ── #}
+<div id="vista-tarjetas" class="inventario-grid">
+    {% for equipo in equipos %}
+    <div class="inv-tarjeta inv-tarjeta--{{ equipo.estado }}">
+
+        {# Imagen #}
+        {% if equipo.imagen %}
+            <img src="{{ equipo.imagen.url }}" alt="{{ equipo.nombre }}" class="inv-tarjeta-imagen">
+        {% else %}
+            <div class="inv-tarjeta-imagen-placeholder">🔧</div>
+        {% endif %}
+
+        {# Cabecera #}
+        <div class="inv-tarjeta-cabeza">
+            <h2 class="inv-tarjeta-nombre">{{ equipo.nombre }}</h2>
+            <span class="badge-estado badge-estado--{{ equipo.estado }}">{{ equipo.get_estado_display }}</span>
+        </div>
+
+        {% if equipo.descripcion %}
+        <p class="inv-tarjeta-desc">{{ equipo.descripcion|truncatechars:80 }}</p>
+        {% endif %}
+
+        {# Stats #}
+        <div class="disponible-tarjeta-stats">
+            <div class="disponible-stat">
+                <span class="disponible-stat-num disponible-stat-num--total">{{ equipo.cantidad_total }}</span>
+                <span class="disponible-stat-label">Total</span>
+            </div>
+            <div class="disponible-stat">
+                <span class="disponible-stat-num disponible-stat-num--renta">{{ equipo.cantidad_en_renta }}</span>
+                <span class="disponible-stat-label">En renta</span>
+            </div>
+            <div class="disponible-stat">
+                <span class="disponible-stat-num disponible-stat-num--mant">{{ equipo.cantidad_en_mantenimiento }}</span>
+                <span class="disponible-stat-label">Mant.</span>
+            </div>
+            <div class="disponible-stat disponible-stat--destacado">
+                <span class="disponible-stat-num disponible-stat-num--disp">{{ equipo.cantidad_disponible }}</span>
+                <span class="disponible-stat-label">Libre</span>
+            </div>
+        </div>
+
+        {# Acciones #}
+        <div class="disponible-tarjeta-acciones">
+            <a href="{% url 'inventario:detalle' equipo.pk %}" class="btn-secundario btn-tarjeta-accion">Ver</a>
+            {% if request.user.es_administrador %}
+                <a href="{% url 'inventario:editar' equipo.pk %}" class="btn-secundario btn-tarjeta-accion">Editar</a>
+                {% if equipo.cantidad_disponible > 0 %}
+                <a href="{% url 'rentas:nueva' %}?equipo={{ equipo.pk }}" class="btn-primario btn-tarjeta-accion">Rentar</a>
+                {% endif %}
+                {% if not equipo.tiene_renta_activa %}
+                <form method="post" action="{% url 'inventario:baja' equipo.pk %}" style="display:inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-peligro btn-tarjeta-accion"
+                            data-confirmar="¿Dar de baja {{ equipo.nombre }}? Esta acción no se puede deshacer.">
+                        Eliminar
+                    </button>
+                </form>
+                {% endif %}
+            {% else %}
+                {% if equipo.cantidad_disponible > 0 %}
+                <a href="{% url 'rentas:solicitar' %}?equipo={{ equipo.pk }}" class="btn-primario btn-tarjeta-accion">Solicitar renta</a>
+                {% endif %}
+                <a href="{% url 'inventario:solicitar' %}?equipo={{ equipo.pk }}" class="btn-secundario btn-tarjeta-accion">Solicitar cambio</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{# ── VISTA TABLA ── #}
+<div id="vista-tabla" class="tabla-contenedor" style="display:none">
+    <table class="tabla-inventario">
+        <thead>
+            <tr>
+                <th scope="col">Equipo</th>
+                <th scope="col">Estado</th>
+                <th scope="col">Total</th>
+                <th scope="col">En renta</th>
+                <th scope="col">Mant.</th>
+                <th scope="col">Disponible</th>
+                <th scope="col">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for equipo in equipos %}
+            <tr class="tabla-fila tabla-fila--{{ equipo.estado }}">
+                <td class="tabla-celda">
+                    <a href="{% url 'inventario:detalle' equipo.pk %}" class="enlace-equipo">{{ equipo.nombre }}</a>
+                </td>
+                <td class="tabla-celda">
+                    <span class="badge-estado badge-estado--{{ equipo.estado }}">{{ equipo.get_estado_display }}</span>
+                </td>
+                <td class="tabla-celda tabla-celda--centrado">{{ equipo.cantidad_total }}</td>
+                <td class="tabla-celda tabla-celda--centrado">
+                    {% if equipo.cantidad_en_renta > 0 %}
+                        <span class="badge-numero badge-numero--renta">{{ equipo.cantidad_en_renta }}</span>
+                    {% else %}—{% endif %}
+                </td>
+                <td class="tabla-celda tabla-celda--centrado">
+                    {% if equipo.cantidad_en_mantenimiento > 0 %}
+                        <span class="badge-numero badge-numero--mant">{{ equipo.cantidad_en_mantenimiento }}</span>
+                    {% else %}—{% endif %}
+                </td>
+                <td class="tabla-celda tabla-celda--centrado">
+                    <span class="badge-estado badge-estado--{{ equipo.estado }}">{{ equipo.cantidad_disponible }}</span>
+                </td>
+                <td class="tabla-celda tabla-celda--acciones">
+                    <a href="{% url 'inventario:detalle' equipo.pk %}" class="btn-tabla btn-tabla--ver">Ver</a>
+                    {% if request.user.es_administrador %}
+                        <a href="{% url 'inventario:editar' equipo.pk %}" class="btn-tabla btn-tabla--editar">Editar</a>
+                        {% if equipo.cantidad_disponible > 0 %}
+                        <a href="{% url 'rentas:nueva' %}?equipo={{ equipo.pk }}" class="btn-tabla btn-tabla--rentar">Rentar</a>
+                        {% endif %}
+                        {% if not equipo.tiene_renta_activa %}
+                        <form method="post" action="{% url 'inventario:baja' equipo.pk %}" style="display:inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-tabla btn-tabla--eliminar"
+                                    data-confirmar="¿Dar de baja {{ equipo.nombre }}? Esta acción no se puede deshacer.">
+                                Eliminar
+                            </button>
+                        </form>
+                        {% endif %}
+                    {% else %}
+                        <a href="{% url 'inventario:solicitar' %}?equipo={{ equipo.pk }}" class="btn-tabla btn-tabla--solicitar">Solicitar cambio</a>
+                        {% if equipo.cantidad_disponible > 0 %}
+                        <a href="{% url 'rentas:solicitar' %}?equipo={{ equipo.pk }}" class="btn-tabla btn-tabla--rentar">Solicitar renta</a>
+                        {% endif %}
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% include "components/_pagination.html" with page_obj=equipos %}
+
+{% else %}
+<div class="estado-vacio">
+    <p class="estado-vacio-mensaje">No hay equipos que coincidan con los filtros.</p>
+    {% if request.user.es_administrador %}
+    <a href="{% url 'inventario:crear' %}" class="btn-primario">Agregar primer equipo</a>
+    {% endif %}
+</div>
+{% endif %}
+
+<script>
+function setVista(v) {
+    if (v === 'tabla') {
+        document.getElementById('vista-tarjetas').style.display = 'none';
+        document.getElementById('vista-tabla').style.display = 'block';
+        document.getElementById('btn-tarjetas').classList.remove('btn-vista--activa');
+        document.getElementById('btn-tabla').classList.add('btn-vista--activa');
+    } else {
+        document.getElementById('vista-tabla').style.display = 'none';
+        document.getElementById('vista-tarjetas').style.display = 'grid';
+        document.getElementById('btn-tabla').classList.remove('btn-vista--activa');
+        document.getElementById('btn-tarjetas').classList.add('btn-vista--activa');
+    }
+    localStorage.setItem('ryv_vista_inventario', v);
+}
+(function () {
+    var saved = localStorage.getItem('ryv_vista_inventario');
+    if (saved === 'tabla') { setVista('tabla'); }
+})();
+</script>
+{% endblock %}
