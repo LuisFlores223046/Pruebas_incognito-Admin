@@ -9,7 +9,59 @@
                 <span class="badge-rol badge-rol--{{ request.user.rol }}">{{ request.user.get_rol_display }}</span>
             </span>
             {% if total_alertas > 0 %}
-                <span class="navbar-alerta-contador" aria-label="{{ total_alertas }} alertas">{{ total_alertas }}</span>
+            <div class="notif-wrapper">
+                <button type="button" class="navbar-alerta-contador" id="btn-notif"
+                        aria-label="{{ total_alertas }} alertas" onclick="toggleNotif(event)">
+                    {{ total_alertas }}
+                </button>
+                <div class="notif-dropdown" id="notif-dropdown" style="display:none">
+                    <div class="notif-header">Notificaciones</div>
+                    {% if alertas_vencidas %}
+                    <div class="notif-grupo notif-grupo--urgente">
+                        <span class="notif-grupo-titulo">Rentas vencidas ({{ alertas_vencidas|length }})</span>
+                        <ul class="notif-lista">
+                            {% for renta in alertas_vencidas %}
+                            <li><a href="{% url 'rentas:detalle' renta.pk %}" class="notif-enlace notif-enlace--vencida">
+                                {{ renta.equipo.nombre }} &mdash; {{ renta.cliente.nombre }}
+                                <span class="notif-fecha">{{ renta.fecha_vencimiento }}</span>
+                            </a></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    {% if alertas_proximas %}
+                    <div class="notif-grupo notif-grupo--proxima">
+                        <span class="notif-grupo-titulo">Próximas a vencer ({{ alertas_proximas|length }})</span>
+                        <ul class="notif-lista">
+                            {% for renta in alertas_proximas %}
+                            <li><a href="{% url 'rentas:detalle' renta.pk %}" class="notif-enlace notif-enlace--proxima">
+                                {{ renta.equipo.nombre }} &mdash; {{ renta.cliente.nombre }}
+                                <span class="notif-fecha">{{ renta.fecha_vencimiento }}</span>
+                            </a></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    {% if solicitudes_pendientes > 0 %}
+                    <div class="notif-grupo">
+                        <a href="{% url 'panel_admin:solicitudes' %}" class="notif-enlace-solicitudes">
+                            {{ solicitudes_pendientes }} solicitud{{ solicitudes_pendientes|pluralize:",es" }} pendiente{{ solicitudes_pendientes|pluralize:"s" }} &rarr;
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <script>
+            function toggleNotif(e) {
+                e.stopPropagation();
+                var d = document.getElementById('notif-dropdown');
+                d.style.display = d.style.display === 'none' ? 'block' : 'none';
+            }
+            document.addEventListener('click', function() {
+                var d = document.getElementById('notif-dropdown');
+                if (d) d.style.display = 'none';
+            });
+            </script>
             {% endif %}
             <form method="post" action="{% url 'authentication:logout' %}" class="form-logout">
                 {% csrf_token %}

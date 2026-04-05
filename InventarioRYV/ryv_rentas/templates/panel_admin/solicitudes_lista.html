@@ -16,77 +16,226 @@
 </div>
 
 {% if solicitudes %}
-<div class="tabla-contenedor">
-    <table class="tabla-solicitudes">
-        <thead>
-            <tr>
-                <th scope="col">#</th>
-                <th scope="col">Tipo</th>
-                <th scope="col">Solicitante</th>
-                <th scope="col">Equipo / Renta</th>
-                <th scope="col">Comentario</th>
-                <th scope="col">Estado</th>
-                <th scope="col">Fecha</th>
-                {% if not mis_solicitudes %}
-                <th scope="col">Acciones</th>
-                {% endif %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for solicitud in solicitudes %}
-            <tr class="tabla-fila tabla-fila--{{ solicitud.estado }}">
-                <td class="tabla-celda">{{ solicitud.pk }}</td>
-                <td class="tabla-celda">
-                    <span class="badge-tipo-solicitud">{{ solicitud.get_tipo_display }}</span>
-                </td>
-                <td class="tabla-celda">{{ solicitud.solicitante.username }}</td>
-                <td class="tabla-celda">
+<div class="solicitudes-cards">
+    {% for solicitud in solicitudes %}
+    <div class="solic-card solic-card--{{ solicitud.estado }}">
+
+        {# Cabecera #}
+        <div class="solic-card-cabeza">
+            <div class="solic-card-meta">
+                <span class="badge-tipo-solicitud">{{ solicitud.get_tipo_display }}</span>
+                <span class="solic-card-num">#{{ solicitud.pk }}</span>
+            </div>
+            <span class="badge-estado-solicitud badge-estado-solicitud--{{ solicitud.estado }}">
+                {{ solicitud.get_estado_display }}
+            </span>
+        </div>
+
+        {# Solicitante y fecha #}
+        <div class="solic-card-info">
+            <span class="solic-card-solicitante">{{ solicitud.solicitante.get_full_name|default:solicitud.solicitante.username }}</span>
+            <span class="solic-card-fecha">{{ solicitud.fecha_creacion|date:"d/m/Y H:i" }}</span>
+        </div>
+
+        {# Detalle según tipo #}
+        <div class="solic-card-detalle">
+            {% if solicitud.tipo == 'alta_equipo' %}
+                <div class="solic-detalle-grid">
+                    {% if solicitud.datos_json.nombre %}
+                    <div class="solic-detalle-item">
+                        <span class="solic-detalle-label">Nombre del equipo</span>
+                        <span class="solic-detalle-valor">{{ solicitud.datos_json.nombre }}</span>
+                    </div>
+                    {% endif %}
+                    {% if solicitud.datos_json.descripcion %}
+                    <div class="solic-detalle-item solic-detalle-item--ancho">
+                        <span class="solic-detalle-label">Descripción</span>
+                        <span class="solic-detalle-valor">{{ solicitud.datos_json.descripcion }}</span>
+                    </div>
+                    {% endif %}
+                    {% if solicitud.datos_json.cantidad_total %}
+                    <div class="solic-detalle-item">
+                        <span class="solic-detalle-label">Cantidad solicitada</span>
+                        <span class="solic-detalle-valor">{{ solicitud.datos_json.cantidad_total }} unidad(es)</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+            {% elif solicitud.tipo == 'edicion_equipo' %}
+                <div class="solic-detalle-grid">
                     {% if solicitud.equipo %}
-                        <a href="{% url 'inventario:detalle' solicitud.equipo.pk %}">{{ solicitud.equipo.nombre }}</a>
-                    {% elif solicitud.renta %}
-                        Renta #{{ solicitud.renta.pk }}
-                    {% else %}
-                        —
-                    {% endif %}
-                </td>
-                <td class="tabla-celda tabla-celda--comentario">{{ solicitud.comentario|truncatechars:80 }}</td>
-                <td class="tabla-celda">
-                    <span class="badge-estado-solicitud badge-estado-solicitud--{{ solicitud.estado }}">
-                        {{ solicitud.get_estado_display }}
-                    </span>
-                </td>
-                <td class="tabla-celda">{{ solicitud.fecha_creacion|date:"d/m/Y H:i" }}</td>
-                {% if not mis_solicitudes %}
-                <td class="tabla-celda tabla-celda--acciones">
-                    {% if solicitud.estado == 'pendiente' %}
-                        <form method="post" action="{% url 'panel_admin:aprobar' solicitud.pk %}" class="form-inline">
-                            {% csrf_token %}
-                            <button type="submit" class="btn-tabla btn-tabla--aprobar"
-                                    data-confirmar="¿Aprobar y ejecutar la solicitud #{{ solicitud.pk }}?">
-                                Aprobar
-                            </button>
-                        </form>
-                        <form method="post" action="{% url 'panel_admin:rechazar' solicitud.pk %}" class="form-inline">
-                            {% csrf_token %}
-                            <button type="submit" class="btn-tabla btn-tabla--rechazar"
-                                    data-confirmar="¿Rechazar la solicitud #{{ solicitud.pk }}?">
-                                Rechazar
-                            </button>
-                        </form>
-                    {% else %}
-                        <span class="tabla-celda-nota">
-                            {{ solicitud.get_estado_display }}
-                            {% if solicitud.resuelto_por %}
-                                por {{ solicitud.resuelto_por.username }}
-                            {% endif %}
+                    <div class="solic-detalle-item">
+                        <span class="solic-detalle-label">Equipo a editar</span>
+                        <span class="solic-detalle-valor">
+                            <a href="{% url 'inventario:detalle' solicitud.equipo.pk %}">{{ solicitud.equipo.nombre }}</a>
                         </span>
+                    </div>
                     {% endif %}
-                </td>
-                {% endif %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                    {% if solicitud.datos_json.nombre %}
+                    <div class="solic-detalle-item">
+                        <span class="solic-detalle-label">Nuevo nombre</span>
+                        <span class="solic-detalle-valor">{{ solicitud.datos_json.nombre }}</span>
+                    </div>
+                    {% endif %}
+                    {% if solicitud.datos_json.descripcion %}
+                    <div class="solic-detalle-item solic-detalle-item--ancho">
+                        <span class="solic-detalle-label">Nueva descripción</span>
+                        <span class="solic-detalle-valor">{{ solicitud.datos_json.descripcion }}</span>
+                    </div>
+                    {% endif %}
+                    {% if solicitud.datos_json.cantidad_total %}
+                    <div class="solic-detalle-item">
+                        <span class="solic-detalle-label">Nueva cantidad total</span>
+                        <span class="solic-detalle-valor">{{ solicitud.datos_json.cantidad_total }} unidad(es)</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+            {% elif solicitud.tipo == 'baja_equipo' %}
+                <div class="solic-detalle-grid">
+                    {% if solicitud.equipo %}
+                    <div class="solic-detalle-item">
+                        <span class="solic-detalle-label">Equipo</span>
+                        <span class="solic-detalle-valor">
+                            <a href="{% url 'inventario:detalle' solicitud.equipo.pk %}">{{ solicitud.equipo.nombre }}</a>
+                        </span>
+                    </div>
+                    {% endif %}
+                    {% if solicitud.datos_json.cantidad_baja %}
+                    <div class="solic-detalle-item">
+                        <span class="solic-detalle-label">Unidades a dar de baja</span>
+                        <span class="solic-detalle-valor solic-detalle-valor--alerta">{{ solicitud.datos_json.cantidad_baja }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+            {% elif solicitud.tipo == 'nueva_renta' %}
+                <div class="solic-detalle-grid">
+                    {% if solicitud.equipo %}
+                    <div class="solic-detalle-item">
+                        <span class="solic-detalle-label">Equipo</span>
+                        <span class="solic-detalle-valor">
+                            <a href="{% url 'inventario:detalle' solicitud.equipo.pk %}">{{ solicitud.equipo.nombre }}</a>
+                        </span>
+                    </div>
+                    {% endif %}
+                    {% if solicitud.datos_json.cantidad %}
+                    <div class="solic-detalle-item">
+                        <span class="solic-detalle-label">Cantidad</span>
+                        <span class="solic-detalle-valor">{{ solicitud.datos_json.cantidad }}</span>
+                    </div>
+                    {% endif %}
+                    {% if solicitud.datos_json.cliente_nombre %}
+                    <div class="solic-detalle-item">
+                        <span class="solic-detalle-label">Cliente</span>
+                        <span class="solic-detalle-valor">{{ solicitud.datos_json.cliente_nombre }}</span>
+                    </div>
+                    {% endif %}
+                    {% if solicitud.datos_json.cliente_telefono %}
+                    <div class="solic-detalle-item">
+                        <span class="solic-detalle-label">Teléfono</span>
+                        <span class="solic-detalle-valor">{{ solicitud.datos_json.cliente_telefono }}</span>
+                    </div>
+                    {% endif %}
+                    {% if solicitud.datos_json.fecha_inicio %}
+                    <div class="solic-detalle-item">
+                        <span class="solic-detalle-label">Inicio</span>
+                        <span class="solic-detalle-valor">{{ solicitud.datos_json.fecha_inicio }}</span>
+                    </div>
+                    {% endif %}
+                    {% if solicitud.datos_json.fecha_vencimiento %}
+                    <div class="solic-detalle-item">
+                        <span class="solic-detalle-label">Vencimiento</span>
+                        <span class="solic-detalle-valor">{{ solicitud.datos_json.fecha_vencimiento }}</span>
+                    </div>
+                    {% endif %}
+                    {% if solicitud.datos_json.precio %}
+                    <div class="solic-detalle-item">
+                        <span class="solic-detalle-label">Precio</span>
+                        <span class="solic-detalle-valor">${{ solicitud.datos_json.precio }}</span>
+                    </div>
+                    {% endif %}
+                    {% if solicitud.datos_json.deposito %}
+                    <div class="solic-detalle-item">
+                        <span class="solic-detalle-label">Depósito</span>
+                        <span class="solic-detalle-valor">${{ solicitud.datos_json.deposito }}</span>
+                    </div>
+                    {% endif %}
+                    {% if solicitud.datos_json.metodo_pago %}
+                    <div class="solic-detalle-item">
+                        <span class="solic-detalle-label">Método de pago</span>
+                        <span class="solic-detalle-valor">{{ solicitud.datos_json.metodo_pago }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+            {% elif solicitud.tipo == 'cierre_renta' %}
+                <div class="solic-detalle-grid">
+                    {% if solicitud.renta %}
+                    <div class="solic-detalle-item">
+                        <span class="solic-detalle-label">Renta</span>
+                        <span class="solic-detalle-valor">
+                            <a href="{% url 'rentas:detalle' solicitud.renta.pk %}">Renta #{{ solicitud.renta.pk }}</a>
+                        </span>
+                    </div>
+                    <div class="solic-detalle-item">
+                        <span class="solic-detalle-label">Equipo</span>
+                        <span class="solic-detalle-valor">{{ solicitud.renta.equipo.nombre }}</span>
+                    </div>
+                    <div class="solic-detalle-item">
+                        <span class="solic-detalle-label">Cliente</span>
+                        <span class="solic-detalle-valor">{{ solicitud.renta.cliente.nombre }}</span>
+                    </div>
+                    <div class="solic-detalle-item">
+                        <span class="solic-detalle-label">Vencimiento</span>
+                        <span class="solic-detalle-valor">{{ solicitud.renta.fecha_vencimiento }}</span>
+                    </div>
+                    <div class="solic-detalle-item">
+                        <span class="solic-detalle-label">Precio total</span>
+                        <span class="solic-detalle-valor">${{ solicitud.renta.precio }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+        {# Comentario / motivo #}
+        {% if solicitud.comentario %}
+        <div class="solic-card-comentario">
+            <span class="solic-card-comentario-label">Motivo:</span>
+            {{ solicitud.comentario }}
+        </div>
+        {% endif %}
+
+        {# Resolución anterior #}
+        {% if solicitud.estado != 'pendiente' and solicitud.resuelto_por %}
+        <div class="solic-card-resolucion">
+            {{ solicitud.get_estado_display }} por {{ solicitud.resuelto_por.get_full_name|default:solicitud.resuelto_por.username }}
+            {% if solicitud.fecha_resolucion %} el {{ solicitud.fecha_resolucion|date:"d/m/Y" }}{% endif %}
+        </div>
+        {% endif %}
+
+        {# Acciones admin #}
+        {% if not mis_solicitudes and solicitud.estado == 'pendiente' %}
+        <div class="solic-card-acciones">
+            <form method="post" action="{% url 'panel_admin:aprobar' solicitud.pk %}" class="form-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn-primario btn-solic-accion"
+                        data-confirmar="¿Aprobar y ejecutar la solicitud #{{ solicitud.pk }}?">
+                    Aprobar
+                </button>
+            </form>
+            <form method="post" action="{% url 'panel_admin:rechazar' solicitud.pk %}" class="form-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn-peligro btn-solic-accion"
+                        data-confirmar="¿Rechazar la solicitud #{{ solicitud.pk }}?">
+                    Rechazar
+                </button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
 </div>
 {% else %}
 <div class="estado-vacio">
