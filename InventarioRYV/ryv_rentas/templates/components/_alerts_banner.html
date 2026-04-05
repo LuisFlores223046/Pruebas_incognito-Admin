@@ -1,32 +1,16 @@
-{% if total_alertas > 0 %}
-<div class="alertas-banner" role="alert" aria-live="polite">
+{% if alertas_vencidas or alertas_proximas %}
+<div class="alertas-barra" role="alert">
     {% if alertas_vencidas %}
-    <div class="alerta-grupo alerta-grupo--urgente">
-        <strong class="alerta-titulo">Rentas vencidas sin cerrar ({{ alertas_vencidas|length }}):</strong>
-        <ul class="alerta-lista">
-            {% for renta in alertas_vencidas %}
-            <li class="alerta-item alerta-item--vencida">
-                <a href="{% url 'rentas:detalle' renta.pk %}" class="alerta-enlace">
-                    {{ renta.equipo.nombre }} — {{ renta.cliente.nombre }} (venció {{ renta.fecha_vencimiento }})
-                </a>
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
+    <span class="alertas-barra-item alertas-barra-item--urgente">
+        &#9888; {{ alertas_vencidas|length }} vencida{{ alertas_vencidas|length|pluralize:"s" }}
+        &mdash; <a href="{% url 'rentas:lista' %}" class="alertas-barra-enlace">Ver rentas</a>
+    </span>
     {% endif %}
     {% if alertas_proximas %}
-    <div class="alerta-grupo alerta-grupo--advertencia">
-        <strong class="alerta-titulo">Próximas a vencer ({{ alertas_proximas|length }}):</strong>
-        <ul class="alerta-lista">
-            {% for renta in alertas_proximas %}
-            <li class="alerta-item alerta-item--proxima">
-                <a href="{% url 'rentas:detalle' renta.pk %}" class="alerta-enlace">
-                    {{ renta.equipo.nombre }} — {{ renta.cliente.nombre }} (vence {{ renta.fecha_vencimiento }})
-                </a>
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
+    <span class="alertas-barra-item alertas-barra-item--proxima">
+        &#9202; {{ alertas_proximas|length }} próxima{{ alertas_proximas|length|pluralize:"s" }} a vencer
+        &mdash; <a href="{% url 'rentas:lista' %}" class="alertas-barra-enlace">Ver rentas</a>
+    </span>
     {% endif %}
 </div>
 {% endif %}

@@ -1,3 +1,4 @@
+{% with vn=request.resolver_match.view_name %}
 <aside class="sidebar" role="navigation" aria-label="Menú principal">
     <nav class="sidebar-nav">
         {% if request.user.es_administrador %}
@@ -5,16 +6,16 @@
                 <span class="sidebar-seccion-titulo">Operaciones</span>
                 <ul class="sidebar-lista">
                     <li class="sidebar-item">
-                        <a href="{% url 'inventario:lista' %}" class="sidebar-enlace">Inventario</a>
+                        <a href="{% url 'inventario:lista' %}" class="sidebar-enlace{% if vn == 'inventario:lista' %} sidebar-enlace--activo{% endif %}">Inventario</a>
                     </li>
                     <li class="sidebar-item">
-                        <a href="{% url 'inventario:disponibles' %}" class="sidebar-enlace">Disponibles</a>
+                        <a href="{% url 'inventario:disponibles' %}" class="sidebar-enlace{% if vn == 'inventario:disponibles' %} sidebar-enlace--activo{% endif %}">Disponibles</a>
                     </li>
                     <li class="sidebar-item">
-                        <a href="{% url 'rentas:lista' %}" class="sidebar-enlace">Rentas activas</a>
+                        <a href="{% url 'rentas:lista' %}" class="sidebar-enlace{% if vn == 'rentas:lista' %} sidebar-enlace--activo{% endif %}">Rentas activas</a>
                     </li>
                     <li class="sidebar-item">
-                        <a href="{% url 'historial:lista' %}" class="sidebar-enlace">Historial</a>
+                        <a href="{% url 'historial:lista' %}" class="sidebar-enlace{% if vn == 'historial:lista' %} sidebar-enlace--activo{% endif %}">Historial</a>
                     </li>
                 </ul>
             </div>
@@ -22,7 +23,7 @@
                 <span class="sidebar-seccion-titulo">Administración</span>
                 <ul class="sidebar-lista">
                     <li class="sidebar-item">
-                        <a href="{% url 'panel_admin:dashboard' %}" class="sidebar-enlace">
+                        <a href="{% url 'panel_admin:dashboard' %}" class="sidebar-enlace{% if vn == 'panel_admin:dashboard' %} sidebar-enlace--activo{% endif %}">
                             Panel Admin
                             {% if solicitudes_pendientes > 0 %}
                                 <span class="badge-pendientes">{{ solicitudes_pendientes }}</span>
@@ -30,13 +31,13 @@
                         </a>
                     </li>
                     <li class="sidebar-item">
-                        <a href="{% url 'panel_admin:solicitudes' %}" class="sidebar-enlace">Solicitudes</a>
+                        <a href="{% url 'panel_admin:solicitudes' %}" class="sidebar-enlace{% if vn == 'panel_admin:solicitudes' %} sidebar-enlace--activo{% endif %}">Solicitudes</a>
                     </li>
                     <li class="sidebar-item">
-                        <a href="{% url 'panel_admin:usuarios' %}" class="sidebar-enlace">Usuarios</a>
+                        <a href="{% url 'panel_admin:usuarios' %}" class="sidebar-enlace{% if vn == 'panel_admin:usuarios' %} sidebar-enlace--activo{% endif %}">Usuarios</a>
                     </li>
                     <li class="sidebar-item">
-                        <a href="{% url 'reportes:panel' %}" class="sidebar-enlace">Reportes</a>
+                        <a href="{% url 'reportes:panel' %}" class="sidebar-enlace{% if vn == 'reportes:panel' %} sidebar-enlace--activo{% endif %}">Reportes</a>
                     </li>
                 </ul>
             </div>
@@ -45,16 +46,16 @@
                 <span class="sidebar-seccion-titulo">Consultas</span>
                 <ul class="sidebar-lista">
                     <li class="sidebar-item">
-                        <a href="{% url 'inventario:lista' %}" class="sidebar-enlace">Inventario</a>
+                        <a href="{% url 'inventario:lista' %}" class="sidebar-enlace{% if vn == 'inventario:lista' %} sidebar-enlace--activo{% endif %}">Inventario</a>
                     </li>
                     <li class="sidebar-item">
-                        <a href="{% url 'inventario:disponibles' %}" class="sidebar-enlace">Disponibles</a>
+                        <a href="{% url 'inventario:disponibles' %}" class="sidebar-enlace{% if vn == 'inventario:disponibles' %} sidebar-enlace--activo{% endif %}">Disponibles</a>
                     </li>
                     <li class="sidebar-item">
-                        <a href="{% url 'rentas:lista' %}" class="sidebar-enlace">Rentas activas</a>
+                        <a href="{% url 'rentas:lista' %}" class="sidebar-enlace{% if vn == 'rentas:lista' %} sidebar-enlace--activo{% endif %}">Rentas activas</a>
                     </li>
                     <li class="sidebar-item">
-                        <a href="{% url 'historial:lista' %}" class="sidebar-enlace">Historial</a>
+                        <a href="{% url 'historial:lista' %}" class="sidebar-enlace{% if vn == 'historial:lista' %} sidebar-enlace--activo{% endif %}">Historial</a>
                     </li>
                 </ul>
             </div>
@@ -62,16 +63,17 @@
                 <span class="sidebar-seccion-titulo">Solicitudes</span>
                 <ul class="sidebar-lista">
                     <li class="sidebar-item">
-                        <a href="{% url 'rentas:solicitar' %}" class="sidebar-enlace">Solicitar renta</a>
+                        <a href="{% url 'rentas:solicitar' %}" class="sidebar-enlace{% if vn == 'rentas:solicitar' %} sidebar-enlace--activo{% endif %}">Solicitar renta</a>
                     </li>
                     <li class="sidebar-item">
-                        <a href="{% url 'inventario:solicitar' %}" class="sidebar-enlace">Solicitar cambio inventario</a>
+                        <a href="{% url 'inventario:solicitar' %}" class="sidebar-enlace{% if vn == 'inventario:solicitar' %} sidebar-enlace--activo{% endif %}">Solicitar cambio inventario</a>
                     </li>
                     <li class="sidebar-item">
-                        <a href="{% url 'solicitudes:mis_solicitudes' %}" class="sidebar-enlace">Mis solicitudes</a>
+                        <a href="{% url 'solicitudes:mis_solicitudes' %}" class="sidebar-enlace{% if vn == 'solicitudes:mis_solicitudes' %} sidebar-enlace--activo{% endif %}">Mis solicitudes</a>
                     </li>
                 </ul>
             </div>
         {% endif %}
     </nav>
 </aside>
+{% endwith %}
