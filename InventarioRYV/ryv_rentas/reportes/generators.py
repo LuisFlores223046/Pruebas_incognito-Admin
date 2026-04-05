@@ -118,17 +118,28 @@ def generar_pdf_rentas(rentas_qs, periodo_inicio=None, periodo_fin=None):
         '': '—',
     }
 
+    CONDICIONES = {
+        'bueno': 'Bueno',
+        'daños_menores': 'Daños',
+        'inservible': 'Inservible',
+        '': '—',
+    }
+
     datos = [
-        ['Equipo', 'Cant.', 'Cliente', 'Inicio', 'Vencim.', 'Precio', 'Depósito', 'Método', 'Recibido', 'Cambio']
+        ['Equipo', 'Cant.', 'Cliente', 'Inicio', 'Vencim.', 'Precio', 'Depósito', 'Recibido', 'Daños', 'Cambio']
     ]
     total_precio = 0
     total_recibido = 0
+    total_daños = 0
     for renta in rentas_qs:
-        metodo = METODOS.get(renta.metodo_pago or '', '—')
         recibido = f'${renta.monto_recibido:,.2f}' if renta.monto_recibido is not None else '—'
+        daños_str = f'${renta.cargo_daños:,.2f}' if renta.cargo_daños else '—'
         cambio = ''
         if renta.cambio_entregado is not None:
             cambio = f'${renta.cambio_entregado:,.2f}'
+        elif renta.deposito > renta.precio:
+            sobrante = renta.deposito - renta.precio
+            cambio = f'${sobrante:,.2f}*'
         datos.append([
             renta.equipo.nombre,
             str(renta.cantidad),
@@ -137,15 +148,18 @@ def generar_pdf_rentas(rentas_qs, periodo_inicio=None, periodo_fin=None):
             str(renta.fecha_vencimiento),
             f'${renta.precio:,.2f}',
             f'${renta.deposito:,.2f}',
-            metodo,
             recibido,
+            daños_str,
             cambio,
         ])
         total_precio += renta.precio
         if renta.monto_recibido is not None:
             total_recibido += renta.monto_recibido
+        if renta.cargo_daños:
+            total_daños += renta.cargo_daños
 
-    datos.append(['', '', '', '', 'TOTAL', f'${total_precio:,.2f}', '', '', f'${total_recibido:,.2f}', ''])
+    total_row = ['', '', '', '', 'TOTAL', f'${total_precio:,.2f}', '', f'${total_recibido:,.2f}', f'${total_daños:,.2f}' if total_daños else '—', '']
+    datos.append(total_row)
 
     tabla = Table(datos, colWidths=[90, 28, 80, 50, 50, 55, 55, 48, 55, 45])
     tabla.setStyle(TableStyle([
@@ -178,5 +192,9 @@ def generar_pdf_rentas(rentas_qs, periodo_inicio=None, periodo_fin=None):
         ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
     ]))
     elementos.append(tabla)
+    elementos.append(Spacer(1, 10))
+    elementos.append(
+        Paragraph('* Cambio a devolver al cliente (depósito mayor al precio total).', styles['Normal'])
+    )
     doc.build(elementos)
     return buffer.getvalue()

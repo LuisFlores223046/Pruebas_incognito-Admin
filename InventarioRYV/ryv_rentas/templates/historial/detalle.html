@@ -64,8 +64,16 @@
                     <span class="badge-metodo-pago">{{ renta.get_metodo_pago_display }}</span>
                 {% endif %}
             </dd>
-            <dt class="detalle-etiqueta">Saldo al devolver</dt>
+            {% if renta.sobrante_deposito %}
+            <dt class="detalle-etiqueta">Cambio devuelto al cliente</dt>
+            <dd class="detalle-valor detalle-valor--monto">
+                <span style="color:#1e8449;font-weight:700">${{ renta.sobrante_deposito }}</span>
+                <small style="color:#777"> (depósito pagado de más)</small>
+            </dd>
+            {% else %}
+            <dt class="detalle-etiqueta">Saldo pendiente</dt>
             <dd class="detalle-valor detalle-valor--monto">${{ renta.saldo_pendiente }}</dd>
+            {% endif %}
             {% if renta.monto_recibido is not None %}
             <dt class="detalle-etiqueta">Monto recibido al cierre</dt>
             <dd class="detalle-valor detalle-valor--monto">
@@ -83,6 +91,20 @@
                         <span style="color:#c0392b">Faltaron ${{ renta.cambio_entregado|stringformat:"s"|slice:"1:" }}</span>
                     {% endif %}
                 {% endif %}
+            </dd>
+            {% endif %}
+            {% if renta.condicion_devolucion %}
+            <dt class="detalle-etiqueta">Condición al devolver</dt>
+            <dd class="detalle-valor">
+                <span class="badge-condicion badge-condicion--{{ renta.condicion_devolucion }}">
+                    {{ renta.get_condicion_devolucion_display }}
+                </span>
+            </dd>
+            {% endif %}
+            {% if renta.cargo_daños %}
+            <dt class="detalle-etiqueta">Cargo por daños</dt>
+            <dd class="detalle-valor detalle-valor--monto" style="color:#c0392b">
+                ${{ renta.cargo_daños }}
             </dd>
             {% endif %}
             <dt class="detalle-etiqueta">Registrada por</dt>

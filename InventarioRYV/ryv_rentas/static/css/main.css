@@ -2044,3 +2044,89 @@ th {
     font-size: 0.85rem;
     padding: 0.35rem 0.9rem;
 }
+
+/* ===================================================
+   CONDICIÓN DE DEVOLUCIÓN
+   =================================================== */
+.condicion-opciones {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 0.4rem;
+}
+
+.condicion-opcion {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: 2px solid #dee2e6;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.condicion-opcion input[type="radio"] {
+    accent-color: currentColor;
+}
+
+.condicion-opcion--bueno:has(input:checked) {
+    border-color: #27ae60;
+    background: #eafaf1;
+    color: #1e8449;
+    font-weight: 600;
+}
+
+.condicion-opcion--menor:has(input:checked) {
+    border-color: #f39c12;
+    background: #fef9e7;
+    color: #9a7d0a;
+    font-weight: 600;
+}
+
+.condicion-opcion--grave:has(input:checked) {
+    border-color: #e74c3c;
+    background: #fdedec;
+    color: #c0392b;
+    font-weight: 600;
+}
+
+.badge-condicion {
+    display: inline-block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+}
+
+.badge-condicion--bueno {
+    background: #eafaf1;
+    color: #1e8449;
+    border: 1px solid #a9dfbf;
+}
+
+.badge-condicion--daños_menores {
+    background: #fef9e7;
+    color: #9a7d0a;
+    border: 1px solid #f9e79f;
+}
+
+.badge-condicion--inservible {
+    background: #fdedec;
+    color: #c0392b;
+    border: 1px solid #f5b7b1;
+}
+
+.badge-condicion--extraviado {
+    background: #f4ecf7;
+    color: #6c3483;
+    border: 1px solid #d2b4de;
+}
+
+.condicion-opcion--extraviado:has(input:checked) {
+    border-color: #8e44ad;
+    background: #f4ecf7;
+    color: #6c3483;
+    font-weight: 600;
+}

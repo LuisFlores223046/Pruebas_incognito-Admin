@@ -12,12 +12,8 @@
         </h1>
     </div>
     <div class="pagina-acciones">
-        {% if renta.estado == 'activa' %}
-            {% if request.user.es_administrador %}
-                <a href="#form-finalizar" class="btn-primario">Finalizar renta</a>
-            {% else %}
-                <a href="{% url 'rentas:solicitar_cierre' renta.pk %}" class="btn-secundario">Solicitar cierre</a>
-            {% endif %}
+        {% if renta.estado == 'activa' and not request.user.es_administrador %}
+            <a href="{% url 'rentas:solicitar_cierre' renta.pk %}" class="btn-secundario">Solicitar cierre</a>
         {% endif %}
     </div>
 </div>
@@ -102,8 +98,16 @@
                     <span class="badge-metodo-pago">{{ renta.get_metodo_pago_display }}</span>
                 {% endif %}
             </dd>
-            <dt class="detalle-etiqueta">Saldo al devolver</dt>
+            {% if renta.sobrante_deposito %}
+            <dt class="detalle-etiqueta">Cambio a devolver</dt>
+            <dd class="detalle-valor detalle-valor--monto">
+                <span style="color:#1e8449;font-weight:700">${{ renta.sobrante_deposito }}</span>
+                <small style="color:#777"> (depósito pagado de más)</small>
+            </dd>
+            {% else %}
+            <dt class="detalle-etiqueta">Saldo pendiente</dt>
             <dd class="detalle-valor detalle-valor--monto">${{ renta.saldo_pendiente }}</dd>
+            {% endif %}
             {% if renta.monto_recibido is not None %}
             <dt class="detalle-etiqueta">Monto recibido al cierre</dt>
             <dd class="detalle-valor detalle-valor--monto">
@@ -139,7 +143,7 @@
         <h2 class="detalle-seccion-titulo">Finalizar renta</h2>
 
         {# Resumen de liquidación #}
-        <div class="liquidacion-resumen">
+        <div class="liquidacion-resumen" id="resumen-liquidacion">
             <div class="liquidacion-fila">
                 <span class="liquidacion-etiqueta">Precio total</span>
                 <span class="liquidacion-valor">${{ renta.precio }}</span>
@@ -148,46 +152,84 @@
                 <span class="liquidacion-etiqueta">Depósito ya pagado</span>
                 <span class="liquidacion-valor liquidacion-valor--pagado">− ${{ renta.deposito }}</span>
             </div>
+            <div class="liquidacion-fila" id="fila-cargo-daños" style="display:none">
+                <span class="liquidacion-etiqueta">Cargo por daños</span>
+                <span class="liquidacion-valor" style="color:#c0392b" id="valor-cargo-resumen">+ $0.00</span>
+            </div>
             <div class="liquidacion-fila liquidacion-fila--total">
-                <span class="liquidacion-etiqueta">Saldo a cobrar</span>
-                <span class="liquidacion-valor liquidacion-valor--saldo">${{ renta.saldo_pendiente }}</span>
+                <span class="liquidacion-etiqueta" id="liq-etiqueta-total">Saldo a cobrar</span>
+                <span class="liquidacion-valor" id="liq-valor-total">${{ renta.saldo_pendiente }}</span>
             </div>
         </div>
 
         <form method="post" action="{% url 'rentas:finalizar' renta.pk %}" class="formulario">
             {% csrf_token %}
+
+            {# Condición del equipo #}
             <div class="campo-grupo">
-                <label class="campo-etiqueta checkbox-etiqueta">
-                    <input type="checkbox" name="confirmacion" required class="input-checkbox">
-                    Confirmo que el equipo fue devuelto.
+                <span class="campo-etiqueta">Condición del equipo al devolver <span class="campo-requerido">*</span></span>
+                <div class="condicion-opciones">
+                    <label class="condicion-opcion condicion-opcion--bueno">
+                        <input type="radio" name="condicion_devolucion" value="bueno" required onchange="actualizarCondicion(this.value)">
+                        Bueno — sin daños
+                    </label>
+                    <label class="condicion-opcion condicion-opcion--menor">
+                        <input type="radio" name="condicion_devolucion" value="daños_menores" onchange="actualizarCondicion(this.value)">
+                        Daños menores
+                    </label>
+                    <label class="condicion-opcion condicion-opcion--grave">
+                        <input type="radio" name="condicion_devolucion" value="inservible" onchange="actualizarCondicion(this.value)">
+                        Inservible / Pérdida total
+                    </label>
+                    <label class="condicion-opcion condicion-opcion--extraviado">
+                        <input type="radio" name="condicion_devolucion" value="extraviado" onchange="actualizarCondicion(this.value)">
+                        Extraviado
+                    </label>
+                </div>
+            </div>
+
+            {# Cargo por daños (visible solo si hay daños) #}
+            <div class="campo-grupo" id="campo-cargo-daños" style="display:none">
+                <label for="id_cargo_daños" class="campo-etiqueta">
+                    Cargo por daños (MXN) <span class="campo-requerido">*</span>
                 </label>
+                <input type="number" id="id_cargo_daños" name="cargo_daños"
+                       class="input-campo" step="0.01" min="0" placeholder="0.00"
+                       oninput="recalcular()">
+                <small class="campo-ayuda">Monto adicional a cobrar al cliente por los daños.</small>
             </div>
-            <div class="campo-grupo">
-                <label for="id_monto_recibido" class="campo-etiqueta">
-                    Monto recibido del cliente (MXN)
-                </label>
-                <input type="number" id="id_monto_recibido" name="monto_recibido"
-                       class="input-campo" step="0.01" min="0"
-                       placeholder="{{ renta.saldo_pendiente }}"
-                       oninput="calcularCambio(this.value)">
-                <small class="campo-ayuda">Deja vacío si no aplica cobro adicional.</small>
+
+            {# Sección de pago — se oculta si ya está cubierto #}
+            <div id="seccion-pago">
+                <div class="campo-grupo">
+                    <label for="id_monto_recibido" class="campo-etiqueta">
+                        Monto recibido del cliente (MXN)
+                    </label>
+                    <input type="number" id="id_monto_recibido" name="monto_recibido"
+                           class="input-campo" step="0.01" min="0"
+                           placeholder="0.00" oninput="calcularCambio(this.value)">
+                </div>
+                <div id="panel-cambio" class="liquidacion-cambio" style="display:none">
+                    <span class="liquidacion-etiqueta" id="panel-cambio-label">Cambio a devolver</span>
+                    <span id="valor-cambio" class="liquidacion-valor--cambio"></span>
+                </div>
+                <div class="campo-grupo">
+                    <label for="id_metodo_pago_cierre" class="campo-etiqueta">Método de pago al cierre</label>
+                    <select name="metodo_pago_cierre" id="id_metodo_pago_cierre" class="input-campo">
+                        <option value="">— Selecciona —</option>
+                        <option value="efectivo">Efectivo</option>
+                        <option value="transferencia">Transferencia bancaria</option>
+                        <option value="tarjeta">Tarjeta</option>
+                        <option value="otro">Otro</option>
+                    </select>
+                </div>
             </div>
-            <div id="panel-cambio" class="liquidacion-cambio" style="display:none">
-                <span class="liquidacion-etiqueta">Cambio a devolver</span>
-                <span id="valor-cambio" class="liquidacion-valor--cambio"></span>
+
+            {# Mensaje cuando no se requiere cobro #}
+            <div id="aviso-sin-cobro" class="alerta-informacion" style="display:none">
+                El depósito ya cubre el total. Solo confirma la devolución.
             </div>
-            <div class="campo-grupo">
-                <label for="id_metodo_pago_cierre" class="campo-etiqueta">
-                    Método de pago al cierre
-                </label>
-                <select name="metodo_pago_cierre" id="id_metodo_pago_cierre" class="input-campo">
-                    <option value="">— Selecciona —</option>
-                    <option value="efectivo">Efectivo</option>
-                    <option value="transferencia">Transferencia bancaria</option>
-                    <option value="tarjeta">Tarjeta</option>
-                    <option value="otro">Otro</option>
-                </select>
-            </div>
+
             <div class="campo-grupo">
                 <label for="id-notas-devolucion" class="campo-etiqueta">Notas de devolución (opcional)</label>
                 <textarea id="id-notas-devolucion" name="notas_devolucion" class="input-campo" rows="2"></textarea>
@@ -201,13 +243,61 @@
         </form>
     </section>
     <script>
-    var saldoPendiente = parseFloat('{{ renta.saldo_pendiente }}') || 0;
+    var precioBase = parseFloat('{{ renta.precio }}') || 0;
+    var depositoBase = parseFloat('{{ renta.deposito }}') || 0;
+
+    function recalcular() {
+        var cargo = parseFloat(document.getElementById('id_cargo_daños') ? document.getElementById('id_cargo_daños').value : 0) || 0;
+        var neto = precioBase - depositoBase + cargo;
+        var filaCargo = document.getElementById('fila-cargo-daños');
+        var resumenCargo = document.getElementById('valor-cargo-resumen');
+        var etiquetaTotal = document.getElementById('liq-etiqueta-total');
+        var valorTotal = document.getElementById('liq-valor-total');
+        var seccionPago = document.getElementById('seccion-pago');
+        var avisoCobro = document.getElementById('aviso-sin-cobro');
+
+        if (cargo > 0) {
+            filaCargo.style.display = 'flex';
+            resumenCargo.textContent = '+ $' + cargo.toFixed(2);
+        } else {
+            filaCargo.style.display = 'none';
+        }
+
+        if (neto <= 0) {
+            etiquetaTotal.textContent = 'Cambio a devolver al cliente';
+            valorTotal.textContent = '$' + Math.abs(neto).toFixed(2);
+            valorTotal.style.color = '#1e8449';
+            seccionPago.style.display = 'none';
+            avisoCobro.style.display = 'block';
+        } else {
+            etiquetaTotal.textContent = 'Total a cobrar';
+            valorTotal.textContent = '$' + neto.toFixed(2);
+            valorTotal.style.color = '#c0392b';
+            seccionPago.style.display = 'block';
+            avisoCobro.style.display = 'none';
+            calcularCambio(document.getElementById('id_monto_recibido').value);
+        }
+    }
+
+    function actualizarCondicion(val) {
+        var campoCargo = document.getElementById('campo-cargo-daños');
+        if (val === 'daños_menores' || val === 'inservible' || val === 'extraviado') {
+            campoCargo.style.display = 'block';
+        } else {
+            campoCargo.style.display = 'none';
+            document.getElementById('id_cargo_daños').value = '';
+        }
+        recalcular();
+    }
+
     function calcularCambio(val) {
+        var cargo = parseFloat(document.getElementById('id_cargo_daños') ? document.getElementById('id_cargo_daños').value : 0) || 0;
+        var neto = precioBase - depositoBase + cargo;
         var panel = document.getElementById('panel-cambio');
         var spanCambio = document.getElementById('valor-cambio');
-        if (val === '' || val === null) { panel.style.display = 'none'; return; }
+        if (!val) { panel.style.display = 'none'; return; }
         var recibido = parseFloat(val) || 0;
-        var cambio = recibido - saldoPendiente;
+        var cambio = recibido - neto;
         panel.style.display = 'flex';
         if (cambio >= 0) {
             spanCambio.textContent = '$' + cambio.toFixed(2);
@@ -217,6 +307,9 @@
             spanCambio.style.color = '#c0392b';
         }
     }
+
+    // Inicializar
+    recalcular();
     </script>
     {% endif %}
 </div>

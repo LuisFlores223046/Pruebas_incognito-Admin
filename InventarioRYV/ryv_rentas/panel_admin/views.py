@@ -218,6 +218,20 @@ def aprobar_solicitud(request, pk):
     )
 
     if request.method == 'POST':
+        # Cierre de renta: redirigir al formulario completo para capturar
+        # condición del equipo, daños y pago antes de finalizar
+        if solicitud.tipo == 'cierre_renta' and solicitud.renta:
+            solicitud.estado = 'aprobada'
+            solicitud.resuelto_por = request.user
+            solicitud.fecha_resolucion = timezone.now()
+            solicitud.save()
+            messages.info(
+                request,
+                f'Solicitud #{solicitud.pk} aprobada. '
+                'Complete la devolución registrando la condición del equipo.',
+            )
+            return redirect('rentas:detalle', pk=solicitud.renta.pk)
+
         try:
             ejecutar_solicitud(solicitud)
             solicitud.resuelto_por = request.user

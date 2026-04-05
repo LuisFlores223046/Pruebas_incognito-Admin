@@ -59,6 +59,13 @@ class Renta(models.Model):
         ('tarjeta', 'Tarjeta'),
         ('otro', 'Otro'),
     ]
+
+    CONDICION_CHOICES = [
+        ('bueno', 'Bueno — sin daños'),
+        ('daños_menores', 'Daños menores'),
+        ('inservible', 'Inservible / Pérdida total'),
+        ('extraviado', 'Extraviado'),
+    ]
     equipo = models.ForeignKey(
         'inventario.Equipo',
         on_delete=models.PROTECT,
@@ -139,6 +146,20 @@ class Renta(models.Model):
         default='activa',
         verbose_name='estado',
     )
+    condicion_devolucion = models.CharField(
+        max_length=20,
+        choices=CONDICION_CHOICES,
+        blank=True,
+        default='',
+        verbose_name='condición al devolver',
+    )
+    cargo_daños = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name='cargo por daños (MXN)',
+    )
     notas = models.TextField(
         blank=True,
         verbose_name='notas',
@@ -161,6 +182,13 @@ class Renta(models.Model):
     def saldo_pendiente(self):
         """Lo que el cliente aún debe pagar al devolver (precio - depósito)."""
         return max(self.precio - self.deposito, 0)
+
+    @property
+    def sobrante_deposito(self):
+        """Cuánto sobró si el depósito fue mayor al precio total."""
+        if self.deposito > self.precio:
+            return self.deposito - self.precio
+        return None
 
     @property
     def cambio_a_devolver(self):

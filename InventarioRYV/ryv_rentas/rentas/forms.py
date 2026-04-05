@@ -247,9 +247,26 @@ class SolicitudRentaForm(forms.Form):
 class FinalizarRentaForm(forms.Form):
     """Formulario de confirmación para finalizar una renta (admin)."""
 
-    confirmacion = forms.BooleanField(
-        required=True,
-        label='Confirmo que el equipo fue devuelto.',
+    condicion_devolucion = forms.ChoiceField(
+        label='Condición del equipo al devolver',
+        choices=[
+            ('bueno', 'Bueno — sin daños'),
+            ('daños_menores', 'Daños menores'),
+            ('inservible', 'Inservible / Pérdida total'),
+            ('extraviado', 'Extraviado'),
+        ],
+        widget=forms.RadioSelect(attrs={'class': 'radio-condicion'}),
+    )
+    cargo_daños = forms.DecimalField(
+        label='Cargo por daños (MXN)',
+        max_digits=10,
+        decimal_places=2,
+        min_value=0,
+        required=False,
+        widget=forms.NumberInput(
+            attrs={'class': 'input-campo', 'step': '0.01', 'placeholder': '0.00'}
+        ),
+        help_text='Monto adicional a cobrar por daños al equipo.',
     )
     monto_recibido = forms.DecimalField(
         label='Monto recibido del cliente (MXN)',
@@ -261,7 +278,6 @@ class FinalizarRentaForm(forms.Form):
             attrs={'class': 'input-campo', 'step': '0.01',
                    'placeholder': '0.00', 'id': 'id_monto_recibido'}
         ),
-        help_text='Cuánto pagó el cliente al momento de la devolución.',
     )
     metodo_pago_cierre = forms.ChoiceField(
         label='Método de pago al cierre',

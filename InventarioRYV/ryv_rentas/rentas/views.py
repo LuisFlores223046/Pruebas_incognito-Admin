@@ -162,15 +162,27 @@ def finalizar_renta(request, pk):
         form = FinalizarRentaForm(request.POST)
         if form.is_valid():
             try:
+                from decimal import Decimal
                 monto_recibido = form.cleaned_data.get('monto_recibido')
+                cargo_daños = form.cleaned_data.get('cargo_daños') or Decimal('0')
                 renta.estado = 'finalizada'
                 renta.fecha_devolucion = date.today()
-                renta.monto_recibido = monto_recibido
                 renta.metodo_pago_cierre = form.cleaned_data.get('metodo_pago_cierre', '')
-                if monto_recibido is not None:
-                    from decimal import Decimal
-                    saldo = max(renta.precio - renta.deposito, Decimal('0'))
-                    renta.cambio_entregado = monto_recibido - saldo
+                renta.condicion_devolucion = form.cleaned_data.get('condicion_devolucion', '')
+                renta.cargo_daños = cargo_daños if cargo_daños > 0 else None
+
+                # Cálculo neto: lo que debe el cliente = precio - deposito + daños
+                neto = renta.precio - renta.deposito + cargo_daños
+
+                if neto <= 0:
+                    # Ya pagó todo (o pagó de más) desde el depósito
+                    renta.monto_recibido = Decimal('0')
+                    renta.cambio_entregado = abs(neto)  # devolver al cliente
+                else:
+                    # Aún debe pagar algo
+                    renta.monto_recibido = monto_recibido
+                    if monto_recibido is not None:
+                        renta.cambio_entregado = monto_recibido - neto
                 notas_dev = form.cleaned_data.get(
                     'notas_devolucion', ''
                 )

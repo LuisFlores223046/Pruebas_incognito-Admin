@@ -76,17 +76,8 @@
                     {% endif %}
                 </td>
                 <td class="tabla-celda tabla-celda--acciones">
-                    <a href="{% url 'rentas:detalle' renta.pk %}" class="btn-tabla btn-tabla--ver">Ver</a>
-                    {% if request.user.es_administrador %}
-                        <form method="post" action="{% url 'rentas:finalizar' renta.pk %}" class="form-inline">
-                            {% csrf_token %}
-                            <input type="hidden" name="confirmacion" value="on">
-                            <button type="submit" class="btn-tabla btn-tabla--finalizar"
-                                    data-confirmar="¿Finalizar la renta de {{ renta.equipo.nombre }} para {{ renta.cliente.nombre }}?">
-                                Finalizar
-                            </button>
-                        </form>
-                    {% else %}
+                    <a href="{% url 'rentas:detalle' renta.pk %}" class="btn-tabla btn-tabla--ver">Ver / Finalizar</a>
+                    {% if not request.user.es_administrador %}
                         <a href="{% url 'rentas:solicitar_cierre' renta.pk %}" class="btn-tabla btn-tabla--solicitar">
                             Solicitar cierre
                         </a>
