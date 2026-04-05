@@ -224,3 +224,49 @@ class Renta(models.Model):
         """True si ya venció pero sigue con estado activa."""
         dias = self.dias_para_vencer
         return dias is not None and dias < 0
+
+    @property
+    def nombre_equipo_display(self):
+        """Nombre del equipo para vistas de lista (soporta múltiples items)."""
+        items = list(self.items.select_related('equipo').all())
+        if items:
+            if len(items) > 1:
+                return f'{items[0].equipo.nombre} (+{len(items) - 1} más)'
+            return items[0].equipo.nombre
+        return self.equipo.nombre if self.equipo_id else '—'
+
+    @property
+    def cantidad_total_equipos(self):
+        """Cantidad total de unidades rentadas en todos los items."""
+        items = list(self.items.all())
+        if items:
+            return sum(i.cantidad for i in items)
+        return self.cantidad
+
+
+class RentaEquipo(models.Model):
+    """Equipo incluido en una renta. Permite múltiples herramientas por renta."""
+
+    renta = models.ForeignKey(
+        Renta,
+        on_delete=models.CASCADE,
+        related_name='items',
+        verbose_name='renta',
+    )
+    equipo = models.ForeignKey(
+        'inventario.Equipo',
+        on_delete=models.PROTECT,
+        related_name='renta_items',
+        verbose_name='equipo',
+    )
+    cantidad = models.PositiveIntegerField(
+        default=1,
+        verbose_name='cantidad',
+    )
+
+    class Meta:
+        verbose_name = 'equipo de renta'
+        verbose_name_plural = 'equipos de renta'
+
+    def __str__(self):
+        return f'{self.cantidad}x {self.equipo.nombre}'

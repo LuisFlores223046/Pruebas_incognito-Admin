@@ -1,4 +1,5 @@
 """Formularios para el módulo de rentas."""
+from decimal import Decimal
 from django import forms
 from django.db.models import F, ExpressionWrapper, IntegerField
 from .models import Renta, Cliente
@@ -20,7 +21,7 @@ def equipos_con_disponibles():
 class RentaForm(forms.ModelForm):
     """
     Formulario para crear una renta (admin).
-    Incluye campos del cliente integrados.
+    Los equipos se añaden como filas dinámicas en la vista/template.
     """
 
     # Campos del cliente
@@ -46,8 +47,6 @@ class RentaForm(forms.ModelForm):
     class Meta:
         model = Renta
         fields = [
-            'equipo',
-            'cantidad',
             'fecha_inicio',
             'fecha_vencimiento',
             'precio',
@@ -56,12 +55,6 @@ class RentaForm(forms.ModelForm):
             'notas',
         ]
         widgets = {
-            'equipo': forms.Select(
-                attrs={'class': 'input-campo'}
-            ),
-            'cantidad': forms.NumberInput(
-                attrs={'class': 'input-campo', 'min': 1}
-            ),
             'fecha_inicio': forms.DateInput(
                 attrs={'class': 'input-campo', 'type': 'date'},
                 format='%Y-%m-%d',
@@ -71,10 +64,12 @@ class RentaForm(forms.ModelForm):
                 format='%Y-%m-%d',
             ),
             'precio': forms.NumberInput(
-                attrs={'class': 'input-campo', 'step': '0.01'}
+                attrs={'class': 'input-campo', 'step': '0.01',
+                       'id': 'id_precio_renta'}
             ),
             'deposito': forms.NumberInput(
-                attrs={'class': 'input-campo', 'step': '0.01'}
+                attrs={'class': 'input-campo', 'step': '0.01',
+                       'id': 'id_deposito_renta'}
             ),
             'metodo_pago': forms.Select(
                 attrs={'class': 'input-campo'}
@@ -84,8 +79,6 @@ class RentaForm(forms.ModelForm):
             ),
         }
         labels = {
-            'equipo': 'Equipo',
-            'cantidad': 'Cantidad de unidades a rentar',
             'fecha_inicio': 'Fecha de inicio',
             'fecha_vencimiento': 'Fecha de vencimiento',
             'precio': 'Precio total (MXN)',
@@ -94,18 +87,13 @@ class RentaForm(forms.ModelForm):
             'notas': 'Notas (opcional)',
         }
 
-    def __init__(self, *args, **kwargs):
-        """Filtra equipos con unidades disponibles."""
-        super().__init__(*args, **kwargs)
-        self.fields['equipo'].queryset = equipos_con_disponibles()
-
     def clean(self):
-        """Valida fechas y disponibilidad del equipo."""
+        """Valida fechas y depósito mínimo."""
         cleaned = super().clean()
         fecha_inicio = cleaned.get('fecha_inicio')
         fecha_vencimiento = cleaned.get('fecha_vencimiento')
-        equipo = cleaned.get('equipo')
-        cantidad = cleaned.get('cantidad') or 1
+        precio = cleaned.get('precio')
+        deposito = cleaned.get('deposito') or Decimal('0')
 
         if fecha_inicio and fecha_vencimiento:
             if fecha_vencimiento <= fecha_inicio:
@@ -114,12 +102,20 @@ class RentaForm(forms.ModelForm):
                     'a la fecha de inicio.'
                 )
 
-        if equipo:
-            if not equipo.tiene_disponibles(cantidad):
-                raise forms.ValidationError(
-                    f'Solo hay {equipo.cantidad_disponible} unidad(es) '
-                    f'disponible(s) de "{equipo.nombre}". '
-                    f'No se pueden rentar {cantidad}.'
+        if precio and precio > 0:
+            minimo = (precio * Decimal('0.5')).quantize(Decimal('0.01'))
+            if deposito < minimo:
+                self.add_error(
+                    'deposito',
+                    f'El depósito mínimo es el 50% del precio '
+                    f'(${minimo}). Ingresa al menos ${minimo}.',
+                )
+
+        if deposito and deposito > 0:
+            if not cleaned.get('metodo_pago'):
+                self.add_error(
+                    'metodo_pago',
+                    'Selecciona el método de pago del depósito.',
                 )
 
         return cleaned
@@ -128,22 +124,9 @@ class RentaForm(forms.ModelForm):
 class SolicitudRentaForm(forms.Form):
     """
     Formulario para que un empleado solicite una nueva renta (RN-008).
-    El administrador la aprobará desde el panel.
+    Los equipos se añaden como filas dinámicas; el resto son campos estándar.
     """
 
-    equipo = forms.ModelChoiceField(
-        queryset=Equipo.objects.none(),
-        label='Equipo',
-        widget=forms.Select(attrs={'class': 'input-campo'}),
-    )
-    cantidad = forms.IntegerField(
-        label='Cantidad de unidades a rentar',
-        min_value=1,
-        initial=1,
-        widget=forms.NumberInput(
-            attrs={'class': 'input-campo', 'min': 1}
-        ),
-    )
     cliente_nombre = forms.CharField(
         label='Nombre del cliente',
         widget=forms.TextInput(attrs={'class': 'input-campo'}),
@@ -181,7 +164,8 @@ class SolicitudRentaForm(forms.Form):
         max_digits=10,
         decimal_places=2,
         widget=forms.NumberInput(
-            attrs={'class': 'input-campo', 'step': '0.01'}
+            attrs={'class': 'input-campo', 'step': '0.01',
+                   'id': 'id_precio_solic'}
         ),
     )
     deposito = forms.DecimalField(
@@ -191,7 +175,8 @@ class SolicitudRentaForm(forms.Form):
         required=False,
         initial=0,
         widget=forms.NumberInput(
-            attrs={'class': 'input-campo', 'step': '0.01'}
+            attrs={'class': 'input-campo', 'step': '0.01',
+                   'id': 'id_deposito_solic'}
         ),
     )
     metodo_pago = forms.ChoiceField(
@@ -219,28 +204,36 @@ class SolicitudRentaForm(forms.Form):
         ),
     )
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['equipo'].queryset = equipos_con_disponibles()
-
     def clean(self):
-        """Valida fechas y disponibilidad."""
+        """Valida fechas y depósito mínimo."""
         cleaned = super().clean()
         inicio = cleaned.get('fecha_inicio')
         vencimiento = cleaned.get('fecha_vencimiento')
-        equipo = cleaned.get('equipo')
-        cantidad = cleaned.get('cantidad') or 1
+        precio = cleaned.get('precio')
+        deposito = cleaned.get('deposito') or Decimal('0')
 
         if inicio and vencimiento and vencimiento <= inicio:
             raise forms.ValidationError(
                 'La fecha de vencimiento debe ser posterior '
                 'a la fecha de inicio.'
             )
-        if equipo and not equipo.tiene_disponibles(cantidad):
-            raise forms.ValidationError(
-                f'Solo hay {equipo.cantidad_disponible} unidad(es) '
-                f'disponible(s) de "{equipo.nombre}".'
-            )
+
+        if precio and precio > 0:
+            minimo = (precio * Decimal('0.5')).quantize(Decimal('0.01'))
+            if deposito < minimo:
+                self.add_error(
+                    'deposito',
+                    f'El depósito mínimo es el 50% del precio '
+                    f'(${minimo}). Ingresa al menos ${minimo}.',
+                )
+
+        if deposito and deposito > 0:
+            if not cleaned.get('metodo_pago'):
+                self.add_error(
+                    'metodo_pago',
+                    'Selecciona el método de pago del depósito.',
+                )
+
         return cleaned
 
 
@@ -261,10 +254,11 @@ class FinalizarRentaForm(forms.Form):
         label='Cargo por daños (MXN)',
         max_digits=10,
         decimal_places=2,
-        min_value=0,
+        min_value=Decimal('0.01'),
         required=False,
         widget=forms.NumberInput(
-            attrs={'class': 'input-campo', 'step': '0.01', 'placeholder': '0.00'}
+            attrs={'class': 'input-campo', 'step': '0.01',
+                   'placeholder': '0.00'}
         ),
         help_text='Monto adicional a cobrar por daños al equipo.',
     )
@@ -297,3 +291,17 @@ class FinalizarRentaForm(forms.Form):
             attrs={'class': 'input-campo', 'rows': 2}
         ),
     )
+
+    def clean(self):
+        cleaned = super().clean()
+        condicion = cleaned.get('condicion_devolucion')
+        cargo = cleaned.get('cargo_daños')
+
+        if condicion and condicion != 'bueno':
+            if not cargo:
+                self.add_error(
+                    'cargo_daños',
+                    'Debes indicar el cargo por daños '
+                    '(obligatorio para esta condición).',
+                )
+        return cleaned

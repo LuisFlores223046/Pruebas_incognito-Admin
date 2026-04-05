@@ -4,8 +4,10 @@
 
 {% block content %}
 <div class="pagina-encabezado">
-    <a href="{% url 'rentas:lista' %}" class="enlace-volver">&larr; Volver a rentas activas</a>
-    <h1 class="pagina-titulo">Solicitar nueva renta</h1>
+    <div class="encabezado-izquierda">
+        <a href="{% url 'rentas:lista' %}" class="enlace-volver">&larr; Volver a rentas activas</a>
+        <h1 class="pagina-titulo">Solicitar nueva renta</h1>
+    </div>
 </div>
 
 <p class="pagina-descripcion">
@@ -14,7 +16,7 @@
 </p>
 
 <div class="formulario-contenedor">
-    <form method="post" class="formulario" novalidate>
+    <form method="post" class="formulario" novalidate id="form-solicitar-renta">
         {% csrf_token %}
 
         {% if form.non_field_errors %}
@@ -25,22 +27,18 @@
         </div>
         {% endif %}
 
+        {# === Equipos a solicitar (filas dinámicas) === #}
         <fieldset class="formulario-fieldset">
-            <legend class="formulario-fieldset-titulo">Equipo</legend>
-            <div class="campo-grupo{% if form.equipo.errors %} campo-grupo--error{% endif %}">
-                <label for="{{ form.equipo.id_for_label }}" class="campo-etiqueta">
-                    {{ form.equipo.label }} <span class="campo-requerido">*</span>
-                </label>
-                {{ form.equipo }}
-                {% for error in form.equipo.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
-            </div>
-            <div class="campo-grupo{% if form.cantidad.errors %} campo-grupo--error{% endif %}">
-                <label for="{{ form.cantidad.id_for_label }}" class="campo-etiqueta">
-                    {{ form.cantidad.label }} <span class="campo-requerido">*</span>
-                </label>
-                {{ form.cantidad }}
-                {% for error in form.cantidad.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
-            </div>
+            <legend class="formulario-fieldset-titulo">Equipos a rentar</legend>
+            <p class="campo-ayuda" style="margin-bottom:0.75rem">
+                Puedes incluir varios equipos en la misma solicitud.
+            </p>
+
+            <div id="equipos-lista"></div>
+            <div id="error-equipos" class="campo-error" style="display:none; margin-bottom:0.5rem"></div>
+            <button type="button" class="btn-agregar-equipo" onclick="agregarEquipo()">
+                + Agregar equipo
+            </button>
         </fieldset>
 
         <fieldset class="formulario-fieldset">
@@ -92,9 +90,13 @@
                 {{ form.precio }}
                 {% for error in form.precio.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
             </div>
-            <div class="campo-grupo">
-                <label for="{{ form.deposito.id_for_label }}" class="campo-etiqueta">{{ form.deposito.label }}</label>
+            <div class="campo-grupo{% if form.deposito.errors %} campo-grupo--error{% endif %}">
+                <label for="{{ form.deposito.id_for_label }}" class="campo-etiqueta">
+                    {{ form.deposito.label }} <span class="campo-requerido">*</span>
+                </label>
                 {{ form.deposito }}
+                <small id="hint-deposito" class="campo-ayuda">Mínimo el 50% del precio.</small>
+                {% for error in form.deposito.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
             </div>
             <div class="campo-grupo">
                 <label for="{{ form.metodo_pago.id_for_label }}" class="campo-etiqueta">{{ form.metodo_pago.label }}</label>
@@ -123,4 +125,139 @@
         </div>
     </form>
 </div>
+
+<script>
+var equiposDisponibles = [
+    {% for eq in equipos_disponibles %}
+    { pk: '{{ eq.pk }}', nombre: '{{ eq.nombre|escapejs }}', max: {{ eq.calc_disp }} }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+var equipoInicialPk = '{{ equipo_inicial_pk|default:"" }}';
+var filaCount = 0;
+
+function crearFilaEquipo(index, preseleccionPk) {
+    var div = document.createElement('div');
+    div.className = 'equipo-fila';
+    div.id = 'equipo-fila-' + index;
+
+    var select = document.createElement('select');
+    select.name = 'equipo_' + index;
+    select.className = 'input-campo equipo-select';
+    select.required = true;
+
+    var opt0 = document.createElement('option');
+    opt0.value = '';
+    opt0.textContent = '— Selecciona un equipo —';
+    select.appendChild(opt0);
+
+    equiposDisponibles.forEach(function(eq) {
+        var opt = document.createElement('option');
+        opt.value = eq.pk;
+        opt.textContent = eq.nombre + ' (' + eq.max + ' disponibles)';
+        opt.dataset.max = eq.max;
+        if (eq.pk === preseleccionPk) opt.selected = true;
+        select.appendChild(opt);
+    });
+
+    select.addEventListener('change', function() {
+        var maxInput = div.querySelector('.equipo-cantidad');
+        var selected = select.options[select.selectedIndex];
+        if (selected && selected.dataset.max) {
+            maxInput.max = selected.dataset.max;
+        }
+    });
+
+    var cantInput = document.createElement('input');
+    cantInput.type = 'number';
+    cantInput.name = 'cantidad_' + index;
+    cantInput.className = 'input-campo equipo-cantidad';
+    cantInput.value = 1;
+    cantInput.min = 1;
+    cantInput.required = true;
+
+    var btnQuitar = document.createElement('button');
+    btnQuitar.type = 'button';
+    btnQuitar.className = 'btn-quitar-equipo';
+    btnQuitar.textContent = 'Quitar';
+    btnQuitar.onclick = function() { quitarEquipo(div); };
+
+    div.appendChild(select);
+    div.appendChild(cantInput);
+    div.appendChild(btnQuitar);
+    return div;
+}
+
+function agregarEquipo(preseleccionPk) {
+    var lista = document.getElementById('equipos-lista');
+    var fila = crearFilaEquipo(filaCount, preseleccionPk || '');
+    lista.appendChild(fila);
+    filaCount++;
+    actualizarBotonesQuitar();
+}
+
+function quitarEquipo(div) {
+    var lista = document.getElementById('equipos-lista');
+    if (lista.children.length <= 1) return;
+    lista.removeChild(div);
+    Array.from(lista.children).forEach(function(fila, i) {
+        fila.querySelector('select').name = 'equipo_' + i;
+        fila.querySelector('.equipo-cantidad').name = 'cantidad_' + i;
+    });
+    filaCount = lista.children.length;
+    actualizarBotonesQuitar();
+}
+
+function actualizarBotonesQuitar() {
+    var lista = document.getElementById('equipos-lista');
+    var botones = lista.querySelectorAll('.btn-quitar-equipo');
+    botones.forEach(function(btn) {
+        btn.style.display = lista.children.length > 1 ? 'inline-block' : 'none';
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var precioInput = document.getElementById('id_precio_solic');
+    var depositoInput = document.getElementById('id_deposito_solic');
+    var hint = document.getElementById('hint-deposito');
+
+    if (precioInput && depositoInput) {
+        precioInput.addEventListener('input', actualizarHint);
+        depositoInput.addEventListener('input', actualizarHint);
+    }
+
+    function actualizarHint() {
+        var precio = parseFloat(precioInput.value) || 0;
+        var deposito = parseFloat(depositoInput.value) || 0;
+        if (precio > 0) {
+            var minimo = (precio * 0.5).toFixed(2);
+            if (deposito < precio * 0.5) {
+                hint.textContent = 'Mínimo el 50% del precio: $' + minimo;
+                hint.style.color = '#c0392b';
+            } else {
+                hint.textContent = 'Mínimo el 50% del precio: $' + minimo + ' ✓';
+                hint.style.color = '#1e8449';
+            }
+        } else {
+            hint.textContent = 'Mínimo el 50% del precio.';
+            hint.style.color = '';
+        }
+    }
+
+    document.getElementById('form-solicitar-renta').addEventListener('submit', function(e) {
+        var lista = document.getElementById('equipos-lista');
+        var errDiv = document.getElementById('error-equipos');
+        var selects = lista.querySelectorAll('select');
+        var sinSeleccion = Array.from(selects).some(function(s) { return !s.value; });
+        if (sinSeleccion) {
+            e.preventDefault();
+            errDiv.textContent = 'Selecciona un equipo en cada fila antes de continuar.';
+            errDiv.style.display = 'block';
+            return;
+        }
+        errDiv.style.display = 'none';
+    });
+
+    agregarEquipo(equipoInicialPk || '');
+});
+</script>
 {% endblock %}

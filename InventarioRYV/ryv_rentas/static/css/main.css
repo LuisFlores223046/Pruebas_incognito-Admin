@@ -2124,6 +2124,75 @@ th {
     border: 1px solid #d2b4de;
 }
 
+/* ===== Multi-equipo: filas dinámicas ===== */
+.equipo-fila {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.equipo-fila .equipo-select {
+    flex: 1 1 240px;
+    min-width: 0;
+}
+
+.equipo-fila .equipo-cantidad {
+    flex: 0 0 80px;
+    width: 80px;
+}
+
+.btn-quitar-equipo {
+    background: none;
+    border: 1px solid #e74c3c;
+    color: #e74c3c;
+    border-radius: 4px;
+    padding: 0.35rem 0.6rem;
+    cursor: pointer;
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+.btn-quitar-equipo:hover {
+    background: #fdecea;
+}
+
+.btn-agregar-equipo {
+    display: inline-block;
+    margin-top: 0.4rem;
+    background: none;
+    border: 1px dashed #3498db;
+    color: #2980b9;
+    border-radius: 4px;
+    padding: 0.4rem 0.9rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+.btn-agregar-equipo:hover {
+    background: #eaf4fb;
+}
+
+/* ===== Tabla equipos en detalle de renta ===== */
+.tabla-equipos-renta {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+.tabla-equipos-renta th {
+    text-align: left;
+    padding: 0.4rem 0.6rem;
+    background: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    color: #555;
+    font-weight: 600;
+}
+.tabla-equipos-renta td {
+    padding: 0.4rem 0.6rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+
 .condicion-opcion--extraviado:has(input:checked) {
     border-color: #8e44ad;
     background: #f4ecf7;

@@ -54,8 +54,8 @@
                 {% if renta.esta_vencida_sin_cerrar %}tabla-fila--vencida
                 {% elif renta.esta_por_vencer %}tabla-fila--por-vencer
                 {% endif %}">
-                <td class="tabla-celda">{{ renta.equipo.nombre }}</td>
-                <td class="tabla-celda tabla-celda--centrado">{{ renta.cantidad }}</td>
+                <td class="tabla-celda">{{ renta.nombre_equipo_display }}</td>
+                <td class="tabla-celda tabla-celda--centrado">{{ renta.cantidad_total_equipos }}</td>
                 <td class="tabla-celda">{{ renta.cliente.nombre }}</td>
                 <td class="tabla-celda">{{ renta.fecha_inicio }}</td>
                 <td class="tabla-celda">

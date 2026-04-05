@@ -11,11 +11,11 @@ def ejecutar_solicitud(solicitud):
     - alta_equipo: crea un nuevo Equipo
     - edicion_equipo: edita campos del Equipo
     - baja_equipo: desactiva el Equipo (si no tiene renta activa)
-    - nueva_renta: crea una nueva Renta y actualiza contador
+    - nueva_renta: crea una nueva Renta con uno o más equipos
     - cierre_renta: finaliza la Renta y libera unidades
     """
     from inventario.models import Equipo
-    from rentas.models import Renta, Cliente
+    from rentas.models import Renta, Cliente, RentaEquipo
 
     datos = solicitud.datos_json or {}
 
@@ -64,27 +64,48 @@ def ejecutar_solicitud(solicitud):
                 'correo': datos.get('cliente_correo', ''),
             },
         )
-        equipo = solicitud.equipo
-        cantidad = int(datos.get('cantidad', 1))
-        if equipo:
-            if not equipo.tiene_disponibles(cantidad):
+
+        # Soporta lista de equipos (nueva solicitud) y equipo único (legado)
+        equipos_datos = datos.get('equipos')
+        if equipos_datos:
+            equipo_items = []
+            for item in equipos_datos:
+                equipo = Equipo.objects.get(pk=item['equipo_id'])
+                cantidad = int(item['cantidad'])
+                if not equipo.tiene_disponibles(cantidad):
+                    raise ValueError(
+                        f'No hay suficientes unidades disponibles '
+                        f'de "{equipo.nombre}".'
+                    )
+                equipo_items.append((equipo, cantidad))
+        else:
+            # Legado: solicitud con equipo único
+            equipo = solicitud.equipo
+            cantidad = int(datos.get('cantidad', 1))
+            if not equipo or not equipo.tiene_disponibles(cantidad):
                 raise ValueError(
-                    f'No hay suficientes unidades disponibles '
-                    f'de "{equipo.nombre}".'
+                    f'No hay suficientes unidades disponibles.'
                 )
-            Renta.objects.create(
-                equipo=equipo,
-                cliente=cliente,
-                registrada_por=solicitud.solicitante,
-                cantidad=cantidad,
-                fecha_inicio=datos['fecha_inicio'],
-                fecha_vencimiento=datos['fecha_vencimiento'],
-                precio=datos['precio'],
-                deposito=datos.get('deposito', 0),
-                metodo_pago=datos.get('metodo_pago', ''),
-                notas=datos.get('notas', ''),
+            equipo_items = [(equipo, cantidad)]
+
+        primer_equipo, primer_cantidad = equipo_items[0]
+        renta = Renta.objects.create(
+            equipo=primer_equipo,
+            cliente=cliente,
+            registrada_por=solicitud.solicitante,
+            cantidad=primer_cantidad,
+            fecha_inicio=datos['fecha_inicio'],
+            fecha_vencimiento=datos['fecha_vencimiento'],
+            precio=datos['precio'],
+            deposito=datos.get('deposito', 0),
+            metodo_pago=datos.get('metodo_pago', ''),
+            notas=datos.get('notas', ''),
+        )
+
+        for equipo, cantidad in equipo_items:
+            RentaEquipo.objects.create(
+                renta=renta, equipo=equipo, cantidad=cantidad
             )
-            # RN-002: actualizar contador de renta
             equipo.cantidad_en_renta += cantidad
             equipo.save()
 
@@ -95,12 +116,20 @@ def ejecutar_solicitud(solicitud):
             renta.estado = 'finalizada'
             renta.fecha_devolucion = date.today()
             renta.save()
-            # RN-003: liberar unidades
-            equipo = renta.equipo
-            equipo.cantidad_en_renta = max(
-                0, equipo.cantidad_en_renta - renta.cantidad
-            )
-            equipo.save()
+            # Liberar unidades (soporta multi-equipo)
+            items = renta.items.select_related('equipo').all()
+            if items:
+                for item in items:
+                    item.equipo.cantidad_en_renta = max(
+                        0, item.equipo.cantidad_en_renta - item.cantidad
+                    )
+                    item.equipo.save()
+            else:
+                equipo = renta.equipo
+                equipo.cantidad_en_renta = max(
+                    0, equipo.cantidad_en_renta - renta.cantidad
+                )
+                equipo.save()
 
     solicitud.estado = 'aprobada'
     solicitud.fecha_resolucion = timezone.now()

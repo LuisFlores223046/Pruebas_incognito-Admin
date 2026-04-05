@@ -49,7 +49,26 @@
 {% else %}
 <div class="detalle-contenedor">
     <section class="detalle-seccion">
-        <h2 class="detalle-seccion-titulo">Equipo rentado</h2>
+        <h2 class="detalle-seccion-titulo">Equipo{% if renta.items.all|length > 1 %}s{% endif %} rentado{% if renta.items.all|length > 1 %}s{% endif %}</h2>
+        {% with items=renta.items.all %}
+        {% if items %}
+        <table class="tabla-equipos-renta">
+            <thead>
+                <tr>
+                    <th>Equipo</th>
+                    <th>Cantidad</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td><a href="{% url 'inventario:detalle' item.equipo.pk %}">{{ item.equipo.nombre }}</a></td>
+                    <td>{{ item.cantidad }} unidad{% if item.cantidad != 1 %}es{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
         <dl class="detalle-lista">
             <dt class="detalle-etiqueta">Equipo</dt>
             <dd class="detalle-valor">
@@ -58,6 +77,8 @@
             <dt class="detalle-etiqueta">Cantidad rentada</dt>
             <dd class="detalle-valor">{{ renta.cantidad }} unidad{% if renta.cantidad != 1 %}es{% endif %}</dd>
         </dl>
+        {% endif %}
+        {% endwith %}
     </section>
 
     <section class="detalle-seccion">
@@ -140,7 +161,16 @@
 
     {% if renta.estado == 'activa' and request.user.es_administrador and form_finalizar %}
     <section class="detalle-seccion" id="form-finalizar">
-        <h2 class="detalle-seccion-titulo">Finalizar renta</h2>
+        <h2 class="detalle-seccion-titulo">Confirmar devolución</h2>
+
+        {# Errores globales del formulario #}
+        {% if form_finalizar.non_field_errors %}
+        <div class="campo-errores-globales" style="margin-bottom:1rem">
+            {% for error in form_finalizar.non_field_errors %}
+            <p class="campo-error">{{ error }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
 
         {# Resumen de liquidación #}
         <div class="liquidacion-resumen" id="resumen-liquidacion">
@@ -162,66 +192,103 @@
             </div>
         </div>
 
-        <form method="post" action="{% url 'rentas:finalizar' renta.pk %}" class="formulario">
+        <form method="post" action="{% url 'rentas:finalizar' renta.pk %}" class="formulario" id="form-devolucion"
+              novalidate>
             {% csrf_token %}
 
             {# Condición del equipo #}
-            <div class="campo-grupo">
+            <div class="campo-grupo" id="grupo-condicion">
                 <span class="campo-etiqueta">Condición del equipo al devolver <span class="campo-requerido">*</span></span>
                 <div class="condicion-opciones">
                     <label class="condicion-opcion condicion-opcion--bueno">
-                        <input type="radio" name="condicion_devolucion" value="bueno" required onchange="actualizarCondicion(this.value)">
+                        <input type="radio" name="condicion_devolucion" value="bueno"
+                               onchange="actualizarCondicion(this.value)"
+                               {% if form_finalizar.data.condicion_devolucion == 'bueno' %}checked{% endif %}>
                         Bueno — sin daños
                     </label>
                     <label class="condicion-opcion condicion-opcion--menor">
-                        <input type="radio" name="condicion_devolucion" value="daños_menores" onchange="actualizarCondicion(this.value)">
+                        <input type="radio" name="condicion_devolucion" value="daños_menores"
+                               onchange="actualizarCondicion(this.value)"
+                               {% if form_finalizar.data.condicion_devolucion == 'daños_menores' %}checked{% endif %}>
                         Daños menores
                     </label>
                     <label class="condicion-opcion condicion-opcion--grave">
-                        <input type="radio" name="condicion_devolucion" value="inservible" onchange="actualizarCondicion(this.value)">
+                        <input type="radio" name="condicion_devolucion" value="inservible"
+                               onchange="actualizarCondicion(this.value)"
+                               {% if form_finalizar.data.condicion_devolucion == 'inservible' %}checked{% endif %}>
                         Inservible / Pérdida total
                     </label>
                     <label class="condicion-opcion condicion-opcion--extraviado">
-                        <input type="radio" name="condicion_devolucion" value="extraviado" onchange="actualizarCondicion(this.value)">
+                        <input type="radio" name="condicion_devolucion" value="extraviado"
+                               onchange="actualizarCondicion(this.value)"
+                               {% if form_finalizar.data.condicion_devolucion == 'extraviado' %}checked{% endif %}>
                         Extraviado
                     </label>
                 </div>
+                <p id="error-condicion" class="campo-error" style="display:none">
+                    Selecciona la condición del equipo.
+                </p>
             </div>
 
-            {# Cargo por daños (visible solo si hay daños) #}
+            {# Cargo por daños #}
             <div class="campo-grupo" id="campo-cargo-daños" style="display:none">
                 <label for="id_cargo_daños" class="campo-etiqueta">
                     Cargo por daños (MXN) <span class="campo-requerido">*</span>
                 </label>
                 <input type="number" id="id_cargo_daños" name="cargo_daños"
-                       class="input-campo" step="0.01" min="0" placeholder="0.00"
-                       oninput="recalcular()">
+                       class="input-campo" step="0.01" min="0.01" placeholder="0.00"
+                       oninput="recalcular()"
+                       value="{{ form_finalizar.data.cargo_daños|default:'' }}">
                 <small class="campo-ayuda">Monto adicional a cobrar al cliente por los daños.</small>
+                {% if form_finalizar.cargo_daños.errors %}
+                <p class="campo-error">{{ form_finalizar.cargo_daños.errors.0 }}</p>
+                {% else %}
+                <p id="error-cargo" class="campo-error" style="display:none">
+                    Indica el cargo por daños para esta condición.
+                </p>
+                {% endif %}
             </div>
 
-            {# Sección de pago — se oculta si ya está cubierto #}
+            {# Sección de pago #}
             <div id="seccion-pago">
                 <div class="campo-grupo">
                     <label for="id_monto_recibido" class="campo-etiqueta">
-                        Monto recibido del cliente (MXN)
+                        Monto recibido del cliente (MXN) <span class="campo-requerido" id="asterisco-monto">*</span>
                     </label>
                     <input type="number" id="id_monto_recibido" name="monto_recibido"
                            class="input-campo" step="0.01" min="0"
-                           placeholder="0.00" oninput="calcularCambio(this.value)">
+                           placeholder="0.00" oninput="calcularCambio(this.value)"
+                           value="{{ form_finalizar.data.monto_recibido|default:'' }}">
+                    {% if form_finalizar.monto_recibido.errors %}
+                    <p class="campo-error">{{ form_finalizar.monto_recibido.errors.0 }}</p>
+                    {% else %}
+                    <p id="error-monto" class="campo-error" style="display:none">
+                        El monto recibido no cubre el saldo pendiente.
+                    </p>
+                    {% endif %}
                 </div>
                 <div id="panel-cambio" class="liquidacion-cambio" style="display:none">
                     <span class="liquidacion-etiqueta" id="panel-cambio-label">Cambio a devolver</span>
                     <span id="valor-cambio" class="liquidacion-valor--cambio"></span>
                 </div>
                 <div class="campo-grupo">
-                    <label for="id_metodo_pago_cierre" class="campo-etiqueta">Método de pago al cierre</label>
+                    <label for="id_metodo_pago_cierre" class="campo-etiqueta">
+                        Método de pago al cierre <span class="campo-requerido">*</span>
+                    </label>
                     <select name="metodo_pago_cierre" id="id_metodo_pago_cierre" class="input-campo">
                         <option value="">— Selecciona —</option>
-                        <option value="efectivo">Efectivo</option>
-                        <option value="transferencia">Transferencia bancaria</option>
-                        <option value="tarjeta">Tarjeta</option>
-                        <option value="otro">Otro</option>
+                        <option value="efectivo" {% if form_finalizar.data.metodo_pago_cierre == 'efectivo' %}selected{% endif %}>Efectivo</option>
+                        <option value="transferencia" {% if form_finalizar.data.metodo_pago_cierre == 'transferencia' %}selected{% endif %}>Transferencia bancaria</option>
+                        <option value="tarjeta" {% if form_finalizar.data.metodo_pago_cierre == 'tarjeta' %}selected{% endif %}>Tarjeta</option>
+                        <option value="otro" {% if form_finalizar.data.metodo_pago_cierre == 'otro' %}selected{% endif %}>Otro</option>
                     </select>
+                    {% if form_finalizar.metodo_pago_cierre.errors %}
+                    <p class="campo-error">{{ form_finalizar.metodo_pago_cierre.errors.0 }}</p>
+                    {% else %}
+                    <p id="error-metodo-pago" class="campo-error" style="display:none">
+                        Selecciona el método de pago.
+                    </p>
+                    {% endif %}
                 </div>
             </div>
 
@@ -232,11 +299,10 @@
 
             <div class="campo-grupo">
                 <label for="id-notas-devolucion" class="campo-etiqueta">Notas de devolución (opcional)</label>
-                <textarea id="id-notas-devolucion" name="notas_devolucion" class="input-campo" rows="2"></textarea>
+                <textarea id="id-notas-devolucion" name="notas_devolucion" class="input-campo" rows="2">{{ form_finalizar.data.notas_devolucion|default:'' }}</textarea>
             </div>
             <div class="formulario-acciones">
-                <button type="submit" class="btn-primario"
-                        data-confirmar="¿Confirmar la devolución del equipo {{ renta.equipo.nombre }}?">
+                <button type="submit" class="btn-primario" id="btn-confirmar-devolucion">
                     Confirmar devolución
                 </button>
             </div>
@@ -247,7 +313,8 @@
     var depositoBase = parseFloat('{{ renta.deposito }}') || 0;
 
     function recalcular() {
-        var cargo = parseFloat(document.getElementById('id_cargo_daños') ? document.getElementById('id_cargo_daños').value : 0) || 0;
+        var cargoInput = document.getElementById('id_cargo_daños');
+        var cargo = cargoInput ? (parseFloat(cargoInput.value) || 0) : 0;
         var neto = precioBase - depositoBase + cargo;
         var filaCargo = document.getElementById('fila-cargo-daños');
         var resumenCargo = document.getElementById('valor-cargo-resumen');
@@ -275,26 +342,35 @@
             valorTotal.style.color = '#c0392b';
             seccionPago.style.display = 'block';
             avisoCobro.style.display = 'none';
-            calcularCambio(document.getElementById('id_monto_recibido').value);
+            var montoInput = document.getElementById('id_monto_recibido');
+            if (montoInput) calcularCambio(montoInput.value);
         }
     }
 
     function actualizarCondicion(val) {
         var campoCargo = document.getElementById('campo-cargo-daños');
+        var errCargo = document.getElementById('error-cargo');
+        var errCond = document.getElementById('error-condicion');
+        if (errCond) errCond.style.display = 'none';
+
         if (val === 'daños_menores' || val === 'inservible' || val === 'extraviado') {
             campoCargo.style.display = 'block';
         } else {
             campoCargo.style.display = 'none';
-            document.getElementById('id_cargo_daños').value = '';
+            var cargoInput = document.getElementById('id_cargo_daños');
+            if (cargoInput) cargoInput.value = '';
+            if (errCargo) errCargo.style.display = 'none';
         }
         recalcular();
     }
 
     function calcularCambio(val) {
-        var cargo = parseFloat(document.getElementById('id_cargo_daños') ? document.getElementById('id_cargo_daños').value : 0) || 0;
+        var cargoInput = document.getElementById('id_cargo_daños');
+        var cargo = cargoInput ? (parseFloat(cargoInput.value) || 0) : 0;
         var neto = precioBase - depositoBase + cargo;
         var panel = document.getElementById('panel-cambio');
         var spanCambio = document.getElementById('valor-cambio');
+        var errMonto = document.getElementById('error-monto');
         if (!val) { panel.style.display = 'none'; return; }
         var recibido = parseFloat(val) || 0;
         var cambio = recibido - neto;
@@ -302,14 +378,81 @@
         if (cambio >= 0) {
             spanCambio.textContent = '$' + cambio.toFixed(2);
             spanCambio.style.color = '#1e8449';
+            if (errMonto) errMonto.style.display = 'none';
         } else {
             spanCambio.textContent = 'Falta $' + Math.abs(cambio).toFixed(2);
             spanCambio.style.color = '#c0392b';
         }
     }
 
-    // Inicializar
-    recalcular();
+    // Validación client-side antes de enviar
+    document.getElementById('form-devolucion').addEventListener('submit', function(e) {
+        var radios = document.querySelectorAll('input[name="condicion_devolucion"]');
+        var condSeleccionada = Array.from(radios).find(function(r) { return r.checked; });
+        var errCond = document.getElementById('error-condicion');
+        var errCargo = document.getElementById('error-cargo');
+        var errMonto = document.getElementById('error-monto');
+        var ok = true;
+
+        // Condición requerida
+        if (!condSeleccionada) {
+            e.preventDefault();
+            if (errCond) { errCond.style.display = 'block'; }
+            ok = false;
+        }
+
+        if (condSeleccionada) {
+            var val = condSeleccionada.value;
+
+            // Cargo requerido si hay daños
+            if (val !== 'bueno') {
+                var cargoInput = document.getElementById('id_cargo_daños');
+                var cargo = cargoInput ? (parseFloat(cargoInput.value) || 0) : 0;
+                if (cargo <= 0) {
+                    e.preventDefault();
+                    if (errCargo) { errCargo.style.display = 'block'; }
+                    ok = false;
+                }
+            }
+
+            // Monto y método de pago requeridos si hay saldo pendiente
+            var cargoInput2 = document.getElementById('id_cargo_daños');
+            var cargo2 = cargoInput2 ? (parseFloat(cargoInput2.value) || 0) : 0;
+            var neto = precioBase - depositoBase + cargo2;
+            if (neto > 0) {
+                var montoInput = document.getElementById('id_monto_recibido');
+                var monto = montoInput ? (parseFloat(montoInput.value) || 0) : 0;
+                if (monto < neto) {
+                    e.preventDefault();
+                    if (errMonto) {
+                        errMonto.textContent = 'El monto recibido ($' + monto.toFixed(2) +
+                            ') no cubre el saldo pendiente ($' + neto.toFixed(2) + '). ' +
+                            'Faltan $' + (neto - monto).toFixed(2) + '.';
+                        errMonto.style.display = 'block';
+                    }
+                    ok = false;
+                }
+                var metodoPago = document.getElementById('id_metodo_pago_cierre');
+                var errMetodo = document.getElementById('error-metodo-pago');
+                if (metodoPago && !metodoPago.value) {
+                    e.preventDefault();
+                    if (errMetodo) { errMetodo.style.display = 'block'; }
+                    ok = false;
+                }
+            }
+        }
+
+        return ok;
+    });
+
+    // Restaurar estado si volvemos con datos del POST (errores del servidor)
+    document.addEventListener('DOMContentLoaded', function() {
+        var checkedRadio = document.querySelector('input[name="condicion_devolucion"]:checked');
+        if (checkedRadio) {
+            actualizarCondicion(checkedRadio.value);
+        }
+        recalcular();
+    });
     </script>
     {% endif %}
 </div>
