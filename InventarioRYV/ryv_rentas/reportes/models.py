@@ -1,11 +1,34 @@
-"""Modelos para el módulo de reportes."""
+"""
+Archivo: models.py
+Descripción: Modelos para el módulo de reportes del sistema RYV Rentas.
+             Define el modelo ReporteGenerado que registra los metadatos
+             de los reportes PDF generados por el Administrador, permitiendo
+             su descarga posterior sin necesidad de regenerarlos desde cero,
+             según lo definido en RF-21 al RF-25 del SRS.
+Fecha: 2026-04-07
+Versión: 1.0
+"""
 from django.db import models
 
 
 class ReporteGenerado(models.Model):
     """
-    Registro de un reporte PDF generado por el administrador.
-    No almacena el archivo, solo los metadatos para regenerarlo.
+    Registro de metadatos de un reporte PDF generado por el Administrador.
+
+    No almacena el archivo físico, solo la información necesaria para
+    identificarlo y regenerarlo bajo demanda desde el historial de reportes,
+    según lo definido en RF-25 del SRS.
+
+    Atributos:
+        tipo (str): Tipo de reporte generado. Puede ser 'inventario'
+        o 'rentas' (rentas por periodo).
+        generado_por (Usuario): Usuario Administrador que generó el reporte.
+        fecha_generacion (datetime): Fecha y hora en que se generó el reporte.
+        periodo_inicio (date): Fecha de inicio del periodo cubierto por el reporte.
+        Solo aplica para reportes de tipo 'rentas'. Campo opcional.
+        periodo_fin (date): Fecha de fin del periodo cubierto por el reporte.
+        Solo aplica para reportes de tipo 'rentas'. Campo opcional.
+        archivo_nombre (str): Nombre descriptivo del archivo PDF generado.
     """
 
     TIPO_CHOICES = [
@@ -48,7 +71,13 @@ class ReporteGenerado(models.Model):
         ordering = ['-fecha_generacion']
 
     def __str__(self):
-        """Representación en texto del reporte."""
+        """
+        Retorna la representación en texto del reporte generado.
+
+        Retorna:
+            str: Cadena con el tipo de reporte y la fecha y hora de generación
+            en formato YYYY-MM-DD HH:MM.
+        """
         return (
             f"{self.get_tipo_display()} — "
             f"{self.fecha_generacion.strftime('%Y-%m-%d %H:%M')}"

@@ -1,4 +1,11 @@
-"""Vistas para el módulo de autenticación."""
+"""
+Archivo: views.py
+Descripción: Vistas para el módulo de autenticación del sistema RYV Rentas.
+             Gestiona el inicio y cierre de sesión de los usuarios,
+             según lo definido en RF-01 y RF-02 del SRS.
+Fecha: 2026-04-07
+Versión: 1.0
+"""
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout
 from django.contrib import messages
@@ -6,7 +13,21 @@ from .forms import LoginForm
 
 
 def login_view(request):
-    """Vista para iniciar sesión."""
+    """
+    Gestiona el inicio de sesión de un usuario en el sistema.
+
+    Si el usuario ya está autenticado, redirige directamente al listado
+    de rentas. Si las credenciales son incorrectas, muestra un mensaje
+    de error y vuelve a presentar el formulario.
+
+    Args:
+        request (HttpRequest): Solicitud HTTP. En método POST debe
+        contener los campos de usuario y contraseña del formulario.
+
+    Returns:
+        HttpResponse: Redirige al listado de rentas si el login es exitoso,
+        o renderiza el formulario de login con mensajes de error si falla.
+    """
     if request.user.is_authenticated:
         return redirect('rentas:lista')
 
@@ -42,7 +63,20 @@ def login_view(request):
 
 
 def logout_view(request):
-    """Vista para cerrar sesión."""
+    """
+    Gestiona el cierre de sesión de un usuario autenticado.
+
+    Solo procesa el cierre de sesión si la solicitud es POST,
+    invalidando la sesión activa en el servidor y redirigiendo
+    al login, según lo definido en RF-02 del SRS.
+
+    Args:
+        request (HttpRequest): Solicitud HTTP. Debe ser de método POST
+        para ejecutar el cierre de sesión.
+
+    Returns:
+        HttpResponse: Redirige a la pantalla de login en todos los casos.
+    """
     if request.method == 'POST':
         logout(request)
         messages.success(

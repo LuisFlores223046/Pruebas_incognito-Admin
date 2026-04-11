@@ -1,4 +1,12 @@
-"""Generadores de PDF para el módulo de reportes."""
+"""
+Archivo: generators.py
+Descripción: Generadores de reportes PDF para el módulo de reportes del sistema RYV Rentas.
+             Implementa la generación de reportes de inventario y rentas por periodo
+             usando la librería ReportLab, según lo definido en RF-21, RF-22, RF-24
+             y RN-012 del SRS.
+Fecha: 2026-04-07
+Versión: 1.0
+"""
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.platypus import (
@@ -15,13 +23,18 @@ from datetime import date
 
 def generar_pdf_inventario(equipos_qs):
     """
-    Genera PDF con el estado actual del inventario.
+    Genera el reporte PDF con el estado actual del inventario de equipos.
 
-    Args:
-        equipos_qs: QuerySet de Equipo activos.
+    Construye una tabla con el nombre, cantidad total, unidades en renta,
+    en mantenimiento y disponibles de cada equipo activo registrado en el
+    sistema, según lo definido en RF-21 y CU-23 del SRS.
 
-    Returns:
-        bytes del PDF generado.
+    Parámetros:
+        equipos_qs (QuerySet): QuerySet de instancias de Equipo activos
+        a incluir en el reporte.
+
+    Retorna:
+        bytes: Contenido del archivo PDF generado en memoria.
     """
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
@@ -80,16 +93,24 @@ def generar_pdf_inventario(equipos_qs):
 
 def generar_pdf_rentas(rentas_qs, periodo_inicio=None, periodo_fin=None):
     """
-    Genera PDF de rentas por periodo con ingreso total (RN-012).
+    Genera el reporte PDF de rentas dentro de un periodo seleccionado.
 
-    Args:
-        rentas_qs: QuerySet de Renta.
-        periodo_inicio: fecha de inicio del periodo (opcional).
-        periodo_fin: fecha de fin del periodo (opcional).
+    Construye una tabla con el equipo, cliente, fechas, precio, depósito,
+    monto recibido, cargo por daños y cambio entregado de cada renta,
+    incluyendo una fila de totales al final, cumpliendo con RF-22, RF-24
+    y RN-012 del SRS.
 
-    Returns:
-        bytes del PDF generado.
-    """
+    Parámetros:
+        rentas_qs (QuerySet): QuerySet de instancias de Renta a incluir
+        en el reporte.
+        periodo_inicio (date): Fecha de inicio del periodo cubierto por
+        el reporte. Campo opcional.
+        periodo_fin (date): Fecha de fin del periodo cubierto por el reporte.
+        Campo opcional.
+
+    Retorna:
+        bytes: Contenido del archivo PDF generado en memoria.
+    """ 
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()

@@ -1,18 +1,44 @@
-"""Servicios para ejecutar solicitudes aprobadas por el admin."""
+"""
+Archivo: services.py
+Descripción: Servicios para ejecutar las solicitudes aprobadas por el Administrador
+             en el sistema RYV Rentas. Implementa la lógica de negocio que se activa
+             al aprobar solicitudes del Empleado, incluyendo alta, edición y baja de
+             equipos, así como el registro y cierre de rentas, según lo definido en
+             RF-27, RN-002, RN-003 y RN-008 del SRS.
+Fecha: 2026-04-07
+Versión: 1.0
+"""
 from django.utils import timezone
 
 
 def ejecutar_solicitud(solicitud):
     """
-    Ejecuta la acción correspondiente cuando el Admin aprueba
-    una solicitud del Empleado.
+    Ejecuta la acción correspondiente al aprobar una solicitud del Empleado.
 
-    Tipos soportados:
-    - alta_equipo: crea un nuevo Equipo
-    - edicion_equipo: edita campos del Equipo
-    - baja_equipo: desactiva el Equipo (si no tiene renta activa)
-    - nueva_renta: crea una nueva Renta con uno o más equipos
-    - cierre_renta: finaliza la Renta y libera unidades
+    Procesa el tipo de solicitud y aplica los cambios en inventario o rentas
+    de forma automática al ser aprobada por el Administrador, cumpliendo con
+    RN-008 del SRS. Soporta los siguientes tipos de solicitud:
+
+    - alta_equipo: crea un nuevo Equipo en el inventario.
+    - edicion_equipo: actualiza los campos permitidos de un Equipo existente.
+    - baja_equipo: desactiva el Equipo si no tiene rentas activas, o reduce
+      su cantidad total si la baja es parcial.
+    - nueva_renta: crea una nueva Renta con uno o más equipos y actualiza
+      los contadores de unidades en renta, cumpliendo con RN-002.
+    - cierre_renta: finaliza la Renta y libera las unidades del equipo,
+      cumpliendo con RN-003.
+
+    Parámetros:
+        solicitud (Solicitud): Instancia de la solicitud a ejecutar.
+        Debe tener estado 'pendiente' y contener los datos necesarios
+        en datos_json para el tipo de operación correspondiente.
+
+    Retorna:
+        None
+
+    Lanza:
+        ValueError: Si el equipo tiene rentas activas al intentar una baja,
+        o si no hay suficientes unidades disponibles al aprobar una nueva renta.
     """
     from inventario.models import Equipo
     from rentas.models import Renta, Cliente, RentaEquipo

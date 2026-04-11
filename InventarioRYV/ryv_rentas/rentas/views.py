@@ -1,4 +1,13 @@
-"""Vistas para el módulo de rentas."""
+"""
+Archivo: views.py
+Descripción: Vistas para el módulo de rentas del sistema RYV Rentas.
+             Gestiona el registro, visualización, finalización y solicitud
+             de rentas, así como el cierre solicitado por el Empleado,
+             según lo definido en RF-13 al RF-19 y RN-001 al RN-005,
+             RN-008 del SRS.
+Fecha: 2026-04-07
+Versión: 1.0
+"""
 from decimal import Decimal
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
@@ -13,7 +22,21 @@ from solicitudes.models import Solicitud
 
 @empleado_o_admin
 def rentas_activas(request):
-    """Lista rentas activas con filtros por cliente y equipo."""
+    """
+    Muestra el listado paginado de todas las rentas con estado activa.
+
+    Permite filtrar por nombre de cliente y nombre de equipo. Los resultados
+    se ordenan por fecha de vencimiento ascendente para priorizar las rentas
+    más próximas a vencer, según lo definido en RF-15 del SRS.
+
+    Parámetros:
+        request (HttpRequest): Solicitud HTTP. Puede incluir los parámetros
+        GET 'cliente' y 'equipo' para filtrar los resultados.
+
+    Retorna:
+        HttpResponse: Renderiza la plantilla rentas/activas.html con el
+        listado paginado de rentas activas y los filtros aplicados.
+    """
     rentas = Renta.objects.filter(
         estado='activa'
     ).select_related('equipo', 'cliente', 'registrada_por')
@@ -47,7 +70,22 @@ def rentas_activas(request):
 
 @empleado_o_admin
 def detalle_renta(request, pk):
-    """Muestra el detalle de una renta."""
+    """
+    Muestra el detalle completo de una renta.
+
+    Si el usuario es Administrador y la renta está activa, incluye el
+    formulario de finalización para registrar la devolución del equipo,
+    según lo definido en RF-16 del SRS.
+
+    Parámetros:
+        request (HttpRequest): Solicitud HTTP.
+        pk (int): Identificador único de la renta a consultar.
+
+    Retorna:
+        HttpResponse: Renderiza la plantilla rentas/detalle.html con los
+        datos completos de la renta y el formulario de finalización si aplica,
+        o devuelve 404 si la renta no existe.
+    """
     renta = get_object_or_404(
         Renta.objects.select_related(
             'equipo', 'cliente', 'registrada_por'
@@ -71,8 +109,17 @@ def detalle_renta(request, pk):
 
 def _parsear_equipos_post(post_data):
     """
-    Lee equipo_0/cantidad_0, equipo_1/cantidad_1 … del POST.
-    Retorna lista de (equipo_pk_str, cantidad_int) o [] si no hay nada.
+    Extrae las filas de equipos y cantidades enviadas desde el formulario POST.
+
+    Lee los campos con formato equipo_0/cantidad_0, equipo_1/cantidad_1, etc.,
+    hasta que no encuentre más índices consecutivos.
+
+    Parámetros:
+        post_data (QueryDict): Datos del formulario POST de la solicitud HTTP.
+
+    Retorna:
+        list[tuple[str, int]]: Lista de tuplas con el pk del equipo como cadena
+        y la cantidad como entero. Retorna una lista vacía si no hay filas.
     """
     items = []
     i = 0
@@ -92,7 +139,23 @@ def _parsear_equipos_post(post_data):
 
 @admin_required
 def nueva_renta(request):
-    """Crea una nueva renta directamente (solo admin)."""
+    """
+    Gestiona el registro de una nueva renta directamente por el Administrador.
+
+    Valida la disponibilidad de los equipos seleccionados, crea o recupera
+    el cliente, registra la renta y actualiza los contadores de unidades en
+    renta de cada equipo, según lo definido en RF-13 y RN-001, RN-002 del SRS.
+
+    Parámetros:
+        request (HttpRequest): Solicitud HTTP. En método POST debe contener
+        los datos del formulario de nueva renta y las filas de equipos con
+        formato equipo_N/cantidad_N. Puede incluir el parámetro GET 'equipo'
+        para preseleccionar un equipo.
+
+    Retorna:
+        HttpResponse: Redirige al listado de rentas activas si el registro
+        es exitoso, o renderiza el formulario con errores si falla.
+    """
     equipo_pk = request.GET.get('equipo')
     equipos_qs = equipos_con_disponibles()
 
@@ -199,7 +262,24 @@ def nueva_renta(request):
 
 @admin_required
 def finalizar_renta(request, pk):
-    """Finaliza una renta y libera las unidades del equipo (admin). RN-003."""
+    """
+    Gestiona la finalización de una renta activa y la liberación de los equipos.
+
+    Valida el monto recibido contra el saldo pendiente incluyendo cargos por
+    daños, registra la condición de devolución del equipo y actualiza los
+    contadores de unidades en renta, cumpliendo con RF-17 y RN-003 del SRS.
+
+    Parámetros:
+        request (HttpRequest): Solicitud HTTP. Debe ser de método POST con
+        los datos del formulario de finalización: monto recibido, método de
+        pago al cierre, condición de devolución y notas opcionales.
+        pk (int): Identificador único de la renta a finalizar.
+
+    Retorna:
+        HttpResponse: Redirige al detalle del historial si la finalización
+        es exitosa, renderiza el formulario con errores si la validación
+        falla, o redirige al detalle de la renta si la solicitud es GET.
+    """
     renta = get_object_or_404(Renta, pk=pk, estado='activa')
 
     if request.method == 'POST':
@@ -305,7 +385,25 @@ def finalizar_renta(request, pk):
 
 @empleado_o_admin
 def solicitar_renta(request):
-    """El empleado solicita una nueva renta (RN-008)."""
+    """
+    Gestiona el envío de una solicitud de nueva renta por parte del Empleado.
+
+    Valida la disponibilidad de los equipos seleccionados y crea una solicitud
+    pendiente de aprobación por el Administrador. Si el usuario es Administrador,
+    redirige directamente a la vista de nueva renta, cumpliendo con RF-14
+    y RN-008 del SRS.
+
+    Parámetros:
+        request (HttpRequest): Solicitud HTTP. En método POST debe contener
+        los datos del formulario de solicitud y las filas de equipos con
+        formato equipo_N/cantidad_N. Puede incluir el parámetro GET 'equipo'
+        para preseleccionar un equipo.
+
+    Retorna:
+        HttpResponse: Redirige al listado de rentas activas si la solicitud
+        se envía exitosamente, redirige a nueva renta si el usuario es
+        Administrador, o renderiza el formulario con errores si falla.
+    """
     if request.user.es_administrador():
         return redirect('rentas:nueva')
 
@@ -396,7 +494,24 @@ def solicitar_renta(request):
 
 @empleado_o_admin
 def solicitar_cierre(request, pk):
-    """El empleado solicita el cierre de una renta (RN-008)."""
+    """
+    Gestiona el envío de una solicitud de cierre de renta por parte del Empleado.
+
+    Crea una solicitud de tipo cierre_renta pendiente de aprobación por el
+    Administrador. Si el usuario es Administrador, redirige directamente a
+    la vista de finalización, cumpliendo con RF-18 y RN-008 del SRS.
+
+    Parámetros:
+        request (HttpRequest): Solicitud HTTP. En método POST puede incluir
+        un comentario opcional explicando el motivo del cierre.
+        pk (int): Identificador único de la renta activa a cerrar.
+
+    Retorna:
+        HttpResponse: Redirige al detalle de la renta si la solicitud se
+        envía exitosamente, redirige a finalizar renta si el usuario es
+        Administrador, o renderiza la plantilla de detalle con el formulario
+        de cierre si la solicitud es GET.
+    """
     if request.user.es_administrador():
         return redirect('rentas:finalizar', pk=pk)
 

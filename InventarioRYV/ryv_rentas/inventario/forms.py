@@ -1,10 +1,24 @@
-"""Formularios para el módulo de inventario."""
+"""
+Archivo: forms.py
+Descripción: Formularios para el módulo de inventario del sistema RYV Rentas.
+             Define los formularios de creación y edición de equipos, así como
+             el formulario de solicitudes de cambio enviadas por el Empleado,
+             según lo definido en RF-05 al RF-12 y RN-007, RN-008 del SRS.
+Fecha: 2026-04-07
+Versión: 1.0
+"""
+
 from django import forms
 from .models import Equipo
 
 
 class EquipoForm(forms.ModelForm):
-    """Formulario para crear/editar equipos."""
+    """
+    Formulario para crear o editar un equipo del inventario.
+
+    Valida que las unidades en mantenimiento no sean iguales o mayores
+    a la cantidad total registrada, según lo definido en RF-05 y RF-09 del SRS.
+    """
 
     class Meta:
         model = Equipo
@@ -49,7 +63,16 @@ class EquipoForm(forms.ModelForm):
         }
 
     def clean(self):
-        """Valida que mantenimiento no supere el total."""
+        """
+        Valida que las unidades en mantenimiento no superen la cantidad total.
+
+        Lanza:
+            ValidationError: Si cantidad_en_mantenimiento es igual o mayor
+            a cantidad_total.
+
+        Retorna:
+            dict: Los datos limpios del formulario si la validación es exitosa.
+        """
         cleaned = super().clean()
         total = cleaned.get('cantidad_total')
         mant = cleaned.get('cantidad_en_mantenimiento')
@@ -64,8 +87,20 @@ class EquipoForm(forms.ModelForm):
 
 class SolicitudEquipoForm(forms.Form):
     """
-    Formulario para que un empleado solicite cambios en equipos.
-    Se adapta dinámicamente según el tipo de solicitud.
+    Formulario para que el Empleado solicite cambios en el inventario.
+
+    Permite solicitar el alta de un nuevo equipo, la edición de uno existente
+    o su baja. Los campos requeridos se validan dinámicamente según el tipo
+    de solicitud seleccionado, cumpliendo con RN-008 del SRS.
+
+    Atributos:
+        tipo (ChoiceField): Tipo de solicitud: alta, edición o baja de equipo.
+        equipo_existente (ModelChoiceField): Equipo a modificar o dar de baja.
+        nombre_equipo (CharField): Nombre del equipo para solicitudes de alta.
+        descripcion_equipo (CharField): Descripción del equipo para alta o edición.
+        cantidad_total (IntegerField): Cantidad de unidades para alta o edición.
+        cantidad_baja (IntegerField): Unidades a retirar en solicitudes de baja.
+        comentario (CharField): Motivo u observaciones de la solicitud. Siempre requerido.
     """
 
     TIPO_CHOICES = [
@@ -128,12 +163,34 @@ class SolicitudEquipoForm(forms.Form):
     )
 
     def __init__(self, *args, **kwargs):
+        """
+        Inicializa el formulario cargando los equipos activos disponibles
+        para selección en los campos de edición y baja.
+
+        Parámetros:
+            *args: Argumentos posicionales del formulario.
+            **kwargs: Argumentos de palabras clave del formulario.
+        """
         super().__init__(*args, **kwargs)
         self.fields['equipo_existente'].queryset = Equipo.objects.filter(
             activo=True
         ).order_by('nombre')
 
     def clean(self):
+        """
+        Valida los campos requeridos según el tipo de solicitud seleccionado.
+
+        Para alta de equipo valida que se ingrese nombre y cantidad. Para
+        edición y baja valida que se seleccione un equipo existente. Para
+        baja además valida que se indique la cantidad de unidades a retirar.
+
+        Retorna:
+            dict: Los datos limpios del formulario si la validación es exitosa.
+
+        Lanza:
+            ValidationError: Por campo específico si algún dato requerido
+            según el tipo de solicitud está ausente o es inválido.
+        """
         cleaned = super().clean()
         tipo = cleaned.get('tipo')
 

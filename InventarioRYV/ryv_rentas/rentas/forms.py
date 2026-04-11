@@ -1,4 +1,13 @@
-"""Formularios para el módulo de rentas."""
+"""
+Archivo: forms.py
+Descripción: Formularios para el módulo de rentas del sistema RYV Rentas.
+             Define los formularios de creación de rentas, solicitudes de
+             renta por parte del Empleado y finalización de rentas, así como
+             la función auxiliar para obtener equipos disponibles, según lo
+             definido en RF-13, RF-14, RF-17, RF-18 y RN-005 del SRS.
+Fecha: 2026-04-07
+Versión: 1.0
+"""
 from decimal import Decimal
 from django import forms
 from django.db.models import F, ExpressionWrapper, IntegerField
@@ -7,7 +16,16 @@ from inventario.models import Equipo
 
 
 def equipos_con_disponibles():
-    """QuerySet de equipos activos con al menos 1 unidad disponible."""
+    """
+    Retorna un QuerySet de equipos activos con al menos una unidad disponible.
+
+    Calcula la disponibilidad directamente en la base de datos mediante
+    anotación ORM para evitar cargar todos los equipos en memoria.
+
+    Retorna:
+        QuerySet: Equipos activos con campo anotado calc_disp mayor a cero,
+        ordenados según la configuración del modelo.
+    """
     return Equipo.objects.filter(activo=True).annotate(
         calc_disp=ExpressionWrapper(
             F('cantidad_total')
@@ -20,8 +38,17 @@ def equipos_con_disponibles():
 
 class RentaForm(forms.ModelForm):
     """
-    Formulario para crear una renta (admin).
-    Los equipos se añaden como filas dinámicas en la vista/template.
+    Formulario para que el Administrador registre una nueva renta.
+
+    Incluye campos del cliente y de la renta. Los equipos se agregan como
+    filas dinámicas desde la plantilla y se procesan en la vista,
+    según lo definido en RF-13 y RN-005 del SRS.
+
+    Atributos:
+        cliente_nombre (CharField): Nombre completo del cliente. Obligatorio.
+        cliente_telefono (CharField): Teléfono de contacto del cliente. Obligatorio.
+        cliente_direccion (CharField): Dirección del cliente. Campo opcional.
+        cliente_correo (EmailField): Correo electrónico del cliente. Campo opcional.
     """
 
     # Campos del cliente
@@ -88,7 +115,20 @@ class RentaForm(forms.ModelForm):
         }
 
     def clean(self):
-        """Valida fechas y depósito mínimo."""
+        """
+        Valida que las fechas sean coherentes y que el depósito cumpla el mínimo requerido.
+
+        La fecha de vencimiento debe ser posterior a la fecha de inicio.
+        El depósito mínimo es el 50% del precio total. Si se ingresa un depósito
+        mayor a cero, el método de pago es obligatorio.
+
+        Retorna:
+            dict: Los datos limpios del formulario si la validación es exitosa.
+
+        Lanza:
+            ValidationError: Si la fecha de vencimiento no es posterior a la
+            fecha de inicio, o si el depósito es menor al mínimo requerido.
+        """
         cleaned = super().clean()
         fecha_inicio = cleaned.get('fecha_inicio')
         fecha_vencimiento = cleaned.get('fecha_vencimiento')
@@ -123,8 +163,24 @@ class RentaForm(forms.ModelForm):
 
 class SolicitudRentaForm(forms.Form):
     """
-    Formulario para que un empleado solicite una nueva renta (RN-008).
-    Los equipos se añaden como filas dinámicas; el resto son campos estándar.
+    Formulario para que el Empleado solicite una nueva renta.
+
+    Los equipos se agregan como filas dinámicas desde la plantilla y se
+    procesan en la vista. La solicitud queda pendiente de aprobación por
+    el Administrador, cumpliendo con RF-14 y RN-008 del SRS.
+
+    Atributos:
+        cliente_nombre (CharField): Nombre completo del cliente. Obligatorio.
+        cliente_telefono (CharField): Teléfono de contacto del cliente. Obligatorio.
+        cliente_direccion (CharField): Dirección del cliente. Campo opcional.
+        cliente_correo (EmailField): Correo electrónico del cliente. Campo opcional.
+        fecha_inicio (DateField): Fecha de inicio de la renta.
+        fecha_vencimiento (DateField): Fecha límite de devolución del equipo.
+        precio (DecimalField): Precio total de la renta en MXN.
+        deposito (DecimalField): Depósito de garantía en MXN. Campo opcional.
+        metodo_pago (ChoiceField): Método de pago del depósito. Campo opcional.
+        notas (CharField): Observaciones adicionales. Campo opcional.
+        comentario (CharField): Comentario obligatorio para el Administrador.
     """
 
     cliente_nombre = forms.CharField(
@@ -205,7 +261,20 @@ class SolicitudRentaForm(forms.Form):
     )
 
     def clean(self):
-        """Valida fechas y depósito mínimo."""
+        """
+        Valida que las fechas sean coherentes y que el depósito cumpla el mínimo requerido.
+
+        La fecha de vencimiento debe ser posterior a la fecha de inicio.
+        El depósito mínimo es el 50% del precio total. Si se ingresa un depósito
+        mayor a cero, el método de pago es obligatorio.
+
+        Retorna:
+            dict: Los datos limpios del formulario si la validación es exitosa.
+
+        Lanza:
+            ValidationError: Si la fecha de vencimiento no es posterior a la
+            fecha de inicio.
+        """
         cleaned = super().clean()
         inicio = cleaned.get('fecha_inicio')
         vencimiento = cleaned.get('fecha_vencimiento')
@@ -238,7 +307,25 @@ class SolicitudRentaForm(forms.Form):
 
 
 class FinalizarRentaForm(forms.Form):
-    """Formulario de confirmación para finalizar una renta (admin)."""
+    """
+    Formulario para que el Administrador registre la devolución de un equipo.
+
+    Captura la condición del equipo devuelto, el cargo por daños si aplica,
+    el monto recibido del cliente y el método de pago al cierre, según lo
+    definido en RF-17 del SRS.
+
+    Atributos:
+        condicion_devolucion (ChoiceField): Estado del equipo al momento de
+        la devolución. Obligatorio.
+        cargo_daños (DecimalField): Monto adicional por daños en MXN.
+        Obligatorio si la condición no es 'bueno'.
+        monto_recibido (DecimalField): Cantidad recibida del cliente al cierre.
+        Campo opcional si el saldo neto es cero o negativo.
+        metodo_pago_cierre (ChoiceField): Método de pago utilizado al cerrar.
+        Obligatorio si hay saldo pendiente.
+        notas_devolucion (CharField): Observaciones adicionales sobre la
+        devolución. Campo opcional.
+    """
 
     condicion_devolucion = forms.ChoiceField(
         label='Condición del equipo al devolver',
@@ -293,6 +380,16 @@ class FinalizarRentaForm(forms.Form):
     )
 
     def clean(self):
+        """
+        Valida que se ingrese el cargo por daños cuando la condición no es 'bueno'.
+
+        Retorna:
+            dict: Los datos limpios del formulario si la validación es exitosa.
+
+        Lanza:
+            ValidationError: Por campo específico si la condición de devolución
+            indica daños pero no se ingresó el cargo correspondiente.
+        """
         cleaned = super().clean()
         condicion = cleaned.get('condicion_devolucion')
         cargo = cleaned.get('cargo_daños')

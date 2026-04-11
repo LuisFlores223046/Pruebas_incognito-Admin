@@ -1,4 +1,12 @@
-"""Vistas para el módulo de historial de rentas."""
+"""
+Archivo: views.py
+Descripción: Vistas para el módulo de historial de rentas del sistema RYV Rentas.
+             Gestiona la consulta y detalle de rentas finalizadas y vencidas,
+             con filtros por cliente, equipo, estado y rango de fechas,
+             según lo definido en RF-20 y HU-020 del SRS.
+Fecha: 2026-04-07
+Versión: 1.0
+"""
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
 from rentas.models import Renta
@@ -8,7 +16,21 @@ from authentication.decorators import empleado_o_admin
 
 @empleado_o_admin
 def historial_lista(request):
-    """Lista el historial de rentas finalizadas y vencidas."""
+    """
+    Muestra el listado paginado de rentas finalizadas y vencidas.
+
+    Permite filtrar los resultados por nombre de cliente, nombre de equipo,
+    estado de la renta y rango de fechas. Los resultados se ordenan por
+    fecha de inicio de forma descendente, según RF-20 del SRS.
+
+    Parámetros:
+        request (HttpRequest): Solicitud HTTP. Puede incluir los parámetros
+        GET: cliente, equipo, estado, fecha_inicio y fecha_fin para filtrar.
+
+    Retorna:
+        HttpResponse: Renderiza la plantilla historial/lista.html con el
+        listado paginado de rentas y los filtros activos.
+    """
     rentas = Renta.objects.exclude(
         estado='activa'
     ).select_related('equipo', 'cliente', 'registrada_por')
@@ -59,7 +81,21 @@ def historial_lista(request):
 
 @empleado_o_admin
 def historial_detalle(request, pk):
-    """Muestra el detalle de una renta del historial."""
+    """
+    Muestra el detalle completo de una renta del historial.
+
+    Recupera la renta correspondiente al identificador recibido,
+    incluyendo los datos del equipo, cliente y usuario que la registró,
+    según lo definido en RF-20 y HU-020 del SRS.
+
+    Parámetros:
+        request (HttpRequest): Solicitud HTTP.
+        pk (int): Identificador único de la renta a consultar.
+
+    Retorna:
+        HttpResponse: Renderiza la plantilla historial/detalle.html con
+        los datos completos de la renta, o devuelve 404 si no existe.
+    """
     renta = get_object_or_404(
         Renta.objects.select_related(
             'equipo', 'cliente', 'registrada_por'
