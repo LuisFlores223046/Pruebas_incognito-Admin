@@ -10,6 +10,8 @@
             <p class="login-subtitulo">Iniciar sesión</p>
         </header>
 
+        <a href="{% url 'inicio:landing' %}" class="btn-secundario btn-bloque" style="margin-bottom: 1rem; text-align: center;">Ir al inicio</a>
+
         {% if messages %}
         <div class="mensajes-contenedor">
             {% for message in messages %}
