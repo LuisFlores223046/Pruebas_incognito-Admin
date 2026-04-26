@@ -4,6 +4,15 @@
    conecte el diseño de Figma encima.
    ===================================================== */
 
+/* --- Variables globales --- */
+:root {
+    --color-primary: #292F37;
+    --bg-page: #F9F9F9;
+    --bg-card: #FFFFFF;
+    --radius-card: 12px;
+    --shadow-card: 0 2px 4px rgba(0,0,0,0.05);
+}
+
 /* --- Reset mínimo --- */
 *, *::before, *::after {
     box-sizing: border-box;
@@ -12,11 +21,11 @@
 }
 
 body {
-    font-family: system-ui, -apple-system, sans-serif;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     font-size: 16px;
     line-height: 1.5;
     color: #1a1a1a;
-    background-color: #f5f5f5;
+    background-color: #F9F9F9;
 }
 
 a {
@@ -38,6 +47,7 @@ a:hover {
 .layout-contenedor {
     display: flex;
     flex: 1;
+    gap: 0;
 }
 
 .layout-contenido {
@@ -66,11 +76,13 @@ a:hover {
     align-items: center;
     justify-content: space-between;
     padding: 0.75rem 1.5rem;
-    background-color: #2c3e50;
+    background-color: #292F37;
     color: #fff;
     position: sticky;
     top: 0;
     z-index: 100;
+    border-bottom: none;
+    box-shadow: none;
 }
 
 .navbar-logo {
@@ -107,13 +119,14 @@ a:hover {
 
 .btn-logout,
 .btn-login {
-    background: transparent;
-    border: 1px solid rgba(255,255,255,0.5);
+    background: rgba(255,255,255,0.1);
+    border: none;
     color: #fff;
-    padding: 0.3rem 0.75rem;
-    border-radius: 4px;
+    padding: 0.4rem 1rem;
+    border-radius: 8px;
     cursor: pointer;
     font-size: 0.9rem;
+    font-weight: 500;
 }
 
 .btn-logout:hover,
@@ -123,12 +136,16 @@ a:hover {
 
 /* --- Sidebar --- */
 .sidebar {
-    width: 220px;
+    width: 260px;
     min-height: 100%;
-    background-color: #34495e;
+    background-color: #292F37;
     color: #ecf0f1;
-    padding: 1rem 0;
+    padding: 1.5rem 0;
     flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    border-top: none;
+    margin-top: 0;
 }
 
 .sidebar-nav {
@@ -159,7 +176,8 @@ a:hover {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.5rem 1rem;
+    gap: 12px;
+    padding: 0.6rem 1.25rem;
     color: #bdc3c7;
     font-size: 0.95rem;
     transition: background-color 0.15s;
@@ -197,9 +215,9 @@ a:hover {
 }
 
 .pagina-titulo {
-    font-size: 1.6rem;
-    font-weight: 700;
-    color: #2c3e50;
+    font-size: 1.8rem;
+    font-weight: 500;
+    color: #292F37;
     display: flex;
     align-items: center;
     gap: 0.75rem;
@@ -228,31 +246,32 @@ a:hover {
 /* --- Botones --- */
 .btn-primario {
     display: inline-block;
-    padding: 0.5rem 1.25rem;
-    background-color: #2980b9;
+    padding: 0.55rem 1.4rem;
+    background-color: #292F37;
     color: #fff;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
     font-size: 0.95rem;
-    font-weight: 600;
+    font-weight: 500;
     text-align: center;
 }
 
 .btn-primario:hover {
-    background-color: #2471a3;
+    background-color: #1f242b;
     text-decoration: none;
 }
 
 .btn-secundario {
     display: inline-block;
-    padding: 0.5rem 1.25rem;
-    background-color: #ecf0f1;
-    color: #2c3e50;
-    border: 1px solid #bdc3c7;
-    border-radius: 4px;
+    padding: 0.55rem 1.4rem;
+    background-color: #F2F2F2;
+    color: #292F37;
+    border: none;
+    border-radius: 8px;
     cursor: pointer;
     font-size: 0.95rem;
+    font-weight: 500;
 }
 
 .btn-secundario:hover {
@@ -298,7 +317,7 @@ a:hover {
 }
 
 .btn-tabla--ver {
-    background-color: #2980b9;
+    background-color: #292F37;
     color: #fff;
 }
 
@@ -345,7 +364,7 @@ a:hover {
 }
 
 .btn-tabla--descargar {
-    background-color: #2980b9;
+    background-color: #292F37;
     color: #fff;
 }
 
@@ -357,10 +376,7 @@ a:hover {
 /* --- Filtros --- */
 .filtros-seccion {
     margin-bottom: 1.5rem;
-    padding: 1rem;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 6px;
+    padding: 0.75rem 0;
 }
 
 .filtros-formulario {
@@ -400,8 +416,8 @@ a:hover {
 }
 
 .input-campo:focus {
-    outline: 2px solid #2980b9;
-    border-color: #2980b9;
+    outline: 2px solid #292F37;
+    border-color: #292F37;
 }
 
 .input-checkbox {
@@ -432,7 +448,7 @@ a:hover {
 .campo-etiqueta {
     font-size: 0.9rem;
     font-weight: 600;
-    color: #2c3e50;
+    color: #292F37;
 }
 
 .campo-requerido {
@@ -494,7 +510,7 @@ a:hover {
 .formulario-detalles-titulo {
     cursor: pointer;
     font-weight: 600;
-    color: #2980b9;
+    color: #292F37;
     font-size: 0.9rem;
 }
 
@@ -506,7 +522,7 @@ a:hover {
     font-size: 1.1rem;
     font-weight: 700;
     margin-bottom: 1rem;
-    color: #2c3e50;
+    color: #292F37;
 }
 
 /* --- Tablas --- */
@@ -530,7 +546,7 @@ a:hover {
 }
 
 th {
-    background-color: #2c3e50;
+    background-color: #292F37;
     color: #fff;
     padding: 0.65rem 0.85rem;
     text-align: left;
@@ -677,7 +693,7 @@ th {
 
 .badge-rol--administrador {
     background-color: #d5d8dc;
-    color: #2c3e50;
+    color: #292F37;
 }
 
 .badge-rol--empleado {
@@ -707,7 +723,7 @@ th {
     padding: 0.15rem 0.45rem;
     border-radius: 3px;
     background-color: #e8eaf0;
-    color: #2c3e50;
+    color: #292F37;
 }
 
 .badge-estado-solicitud {
@@ -800,7 +816,7 @@ th {
 
 .alerta-titulo {
     font-size: 0.9rem;
-    color: #2c3e50;
+    color: #292F37;
 }
 
 .alerta-lista {
@@ -824,7 +840,7 @@ th {
 .alerta-informacion {
     padding: 0.75rem 1rem;
     background-color: #d6eaf8;
-    border-left: 4px solid #2980b9;
+    border-left: 4px solid #292F37;
     border-radius: 4px;
     margin-bottom: 1rem;
     font-size: 0.92rem;
@@ -893,7 +909,7 @@ th {
 .detalle-seccion-titulo {
     font-size: 1rem;
     font-weight: 700;
-    color: #2c3e50;
+    color: #292F37;
     margin-bottom: 0.75rem;
     padding-bottom: 0.5rem;
     border-bottom: 1px solid #eee;
@@ -948,7 +964,7 @@ th {
     border: 1px solid #bdc3c7;
     border-radius: 4px;
     background-color: #fff;
-    color: #2980b9;
+    color: #292F37;
     font-size: 0.9rem;
 }
 
@@ -971,7 +987,7 @@ th {
 .dashboard-seccion-titulo {
     font-size: 1rem;
     font-weight: 700;
-    color: #2c3e50;
+    color: #292F37;
     margin-bottom: 0.75rem;
 }
 
@@ -997,7 +1013,7 @@ th {
 .metrica-valor {
     font-size: 2rem;
     font-weight: 700;
-    color: #2c3e50;
+    color: #292F37;
     line-height: 1;
 }
 
@@ -1025,7 +1041,7 @@ th {
 }
 
 .enlace-accion {
-    color: #2980b9;
+    color: #292F37;
     font-weight: 600;
 }
 
@@ -1046,7 +1062,7 @@ th {
     border-radius: 6px;
     font-weight: 600;
     font-size: 0.95rem;
-    color: #2c3e50;
+    color: #292F37;
     text-align: center;
     box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
@@ -1074,7 +1090,7 @@ th {
 .reporte-seccion-titulo {
     font-size: 1.05rem;
     font-weight: 700;
-    color: #2c3e50;
+    color: #292F37;
     margin-bottom: 0.5rem;
 }
 
@@ -1099,7 +1115,7 @@ th {
 .landing-titulo {
     font-size: 2.5rem;
     font-weight: 800;
-    color: #2c3e50;
+    color: #292F37;
 }
 
 .landing-subtitulo {
@@ -1115,7 +1131,7 @@ th {
 .landing-bienvenida h2 {
     font-size: 1.4rem;
     margin-bottom: 0.5rem;
-    color: #2c3e50;
+    color: #292F37;
 }
 
 .landing-caracteristicas {
@@ -1136,7 +1152,7 @@ th {
 .caracteristica h3 {
     font-size: 1rem;
     font-weight: 700;
-    color: #2c3e50;
+    color: #292F37;
     margin-bottom: 0.35rem;
 }
 
@@ -1168,7 +1184,7 @@ th {
 .login-titulo {
     font-size: 1.75rem;
     font-weight: 800;
-    color: #2c3e50;
+    color: #292F37;
 }
 
 .login-subtitulo {
@@ -1206,7 +1222,7 @@ th {
 
 .error-titulo {
     font-size: 1.5rem;
-    color: #2c3e50;
+    color: #292F37;
     margin: 0.5rem 0;
 }
 
@@ -1242,7 +1258,7 @@ th {
 .modal-titulo {
     font-size: 1.1rem;
     font-weight: 700;
-    color: #2c3e50;
+    color: #292F37;
     margin-bottom: 0.75rem;
 }
 
@@ -1302,13 +1318,13 @@ th {
 }
 
 .btn-vista:hover {
-    border-color: #2980b9;
-    color: #2980b9;
+    border-color: #292F37;
+    color: #292F37;
 }
 
 .btn-vista--activa {
-    background: #2980b9;
-    border-color: #2980b9;
+    background: #292F37;
+    border-color: #292F37;
     color: #fff;
     font-weight: 600;
 }
@@ -1350,7 +1366,7 @@ th {
 .disponible-tarjeta-nombre {
     font-size: 1rem;
     font-weight: 700;
-    color: #2c3e50;
+    color: #292F37;
     margin: 0;
     line-height: 1.3;
 }
@@ -1403,7 +1419,7 @@ th {
     line-height: 1;
 }
 
-.disponible-stat-num--total  { color: #2c3e50; }
+.disponible-stat-num--total  { color: #292F37; }
 .disponible-stat-num--renta  { color: #e67e22; }
 .disponible-stat-num--mant   { color: #8e44ad; }
 .disponible-stat-num--disp   { color: #27ae60; }
@@ -1458,7 +1474,7 @@ th {
 .solicitud-seccion-titulo {
     font-size: 0.95rem;
     font-weight: 700;
-    color: #1a5276;
+    color: #292F37;
     margin-bottom: 1rem;
     display: flex;
     align-items: center;
@@ -1480,7 +1496,7 @@ th {
 .solicitud-datos-titulo {
     font-size: 0.85rem;
     font-weight: 600;
-    color: #2980b9;
+    color: #292F37;
     margin-bottom: 0.75rem;
 }
 
@@ -1516,7 +1532,7 @@ th {
 .baja-info-valor {
     font-size: 1rem;
     font-weight: 700;
-    color: #2c3e50;
+    color: #292F37;
 }
 
 .baja-info-item--destacado {
@@ -1581,7 +1597,7 @@ th {
 
 .liquidacion-valor {
     font-weight: 600;
-    color: #2c3e50;
+    color: #292F37;
 }
 
 .liquidacion-valor--pagado {
@@ -1617,8 +1633,8 @@ th {
     text-transform: uppercase;
     letter-spacing: 0.04em;
     background: #eaf0fb;
-    color: #2471a3;
-    border: 1px solid #aed6f1;
+    color: #292F37;
+    border: 1px solid #292F37;
     border-radius: 4px;
     padding: 0.1rem 0.45rem;
     margin-left: 0.5rem;
@@ -1710,7 +1726,7 @@ th {
 .inv-tarjeta-nombre {
     font-size: 0.95rem;
     font-weight: 700;
-    color: #2c3e50;
+    color: #292F37;
     margin: 0;
 }
 
@@ -1965,7 +1981,7 @@ th {
 
 .solic-card-solicitante {
     font-weight: 600;
-    color: #2c3e50;
+    color: #292F37;
 }
 
 .solic-card-fecha {
@@ -2005,7 +2021,7 @@ th {
 
 .solic-detalle-valor {
     font-size: 0.9rem;
-    color: #2c3e50;
+    color: #292F37;
 }
 
 .solic-detalle-valor--alerta {
@@ -2161,8 +2177,8 @@ th {
     display: inline-block;
     margin-top: 0.4rem;
     background: none;
-    border: 1px dashed #3498db;
-    color: #2980b9;
+    border: 1px dashed #292F37;
+    color: #292F37;
     border-radius: 4px;
     padding: 0.4rem 0.9rem;
     cursor: pointer;
@@ -2170,7 +2186,7 @@ th {
     font-weight: 500;
 }
 .btn-agregar-equipo:hover {
-    background: #eaf4fb;
+    background: #eef1f4;
 }
 
 /* ===== Tabla equipos en detalle de renta ===== */
@@ -2198,4 +2214,156 @@ th {
     background: #f4ecf7;
     color: #6c3483;
     font-weight: 600;
+}
+
+/* =====================================================
+   RENTAS — CARD ROWS (diseño Figma)
+   ===================================================== */
+.rentas-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.renta-fila {
+    display: grid;
+    grid-template-columns: 44px 1.4fr 1fr 130px 160px 120px 52px;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+}
+
+.renta-fila--encabezado {
+    background-color: #F2F2F2;
+    color: #8a8a8a;
+    font-size: 0.84rem;
+    font-weight: 500;
+}
+
+.renta-fila--dato {
+    background-color: #FFFFFF;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    font-size: 0.92rem;
+    transition: box-shadow 0.15s;
+}
+
+.renta-fila--dato:hover {
+    box-shadow: 0 4px 14px rgba(0,0,0,0.09);
+}
+
+.renta-col--nombre {
+    font-weight: 600;
+    color: #292F37;
+}
+
+.renta-col--telefono,
+.renta-col--fecha {
+    color: #555;
+}
+
+.renta-chevron {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: #F2F2F2;
+    color: #555;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+}
+
+.renta-chevron:hover {
+    background: #292F37;
+    color: #fff;
+    text-decoration: none;
+}
+
+/* Badges de estado ACTIVA / FINALIZADA */
+.badge-renta-estado {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.3rem 0.95rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+}
+
+.badge-renta-estado--activa {
+    background-color: #27ae60;
+    color: #fff;
+}
+
+.badge-renta-estado--finalizada {
+    background-color: #c0392b;
+    color: #fff;
+}
+
+.badge-renta-estado--vencida {
+    background-color: #c0392b;
+    color: #fff;
+}
+
+.badge-renta-estado--por-vencer {
+    background-color: #e67e22;
+    color: #fff;
+}
+
+/* Icono de editar */
+.btn-editar-renta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
+    transition: color 0.15s;
+}
+
+.btn-editar-renta:hover {
+    color: #292F37;
+    text-decoration: none;
+}
+
+/* Botón "Registrar Renta" pill */
+.btn-registrar-renta {
+    border-radius: 20px;
+    padding: 0.6rem 1.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+}
+
+/* Sidebar: botón cerrar sesión al fondo */
+.sidebar-footer {
+    margin-top: auto;
+    padding: 1.5rem 1.25rem;
+}
+
+.btn-sidebar-logout {
+    display: block;
+    width: 100%;
+    padding: 0.7rem 1.25rem;
+    background-color: rgba(255,255,255,0.1);
+    color: #ccc;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.btn-sidebar-logout:hover {
+    background-color: rgba(255,255,255,0.18);
+    color: #fff;
+    text-decoration: none;
 }
