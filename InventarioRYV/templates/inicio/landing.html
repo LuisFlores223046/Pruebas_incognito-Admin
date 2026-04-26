@@ -119,9 +119,9 @@
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: rgba(212,168,67,0.12);
-    color: var(--accent);
-    border: 1.5px solid rgba(212,168,67,0.45);
+    background: #d4a843;
+    color: #0a0a0a !important;
+    border: 1.5px solid #b8912e;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -134,8 +134,8 @@
   }
 
   .btn-nav:hover {
-    background: rgba(212,168,67,0.22);
-    color: var(--accent);
+    background: #b8912e;
+    color: #6b6560 !important;
     transform: translateY(-1px);
   }
 
@@ -534,7 +534,15 @@
     justify-content: center;
     border: 1px solid var(--card-border);
     color: var(--gray-light);
+    text-decoration: none;
+    line-height: 0;
+    overflow: hidden;
     transition: all 0.3s;
+  }
+
+  .fleet-arrow svg {
+    display: block;
+    flex-shrink: 0;
   }
 
   .fleet-card:hover .fleet-arrow {
@@ -1006,9 +1014,9 @@
       <p>Sistemas modulares y multidireccionales certificados. Fachadas, interiores y obra civil. Alturas de hasta 30 metros con máxima seguridad.</p>
       <div class="fleet-card-footer">
         <div class="fleet-price">$850 <small>/ módulo / semana</small></div>
-        <div class="fleet-arrow">
+        <a href="#contacto" class="fleet-arrow" aria-label="Contactar por andamios">
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 12L12 4M12 4H5M12 4v7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
+        </a>
       </div>
     </div>
 
@@ -1030,9 +1038,9 @@
       <p>Apisonadoras vibratorias tipo bailarina para compactación de zanjas, cimentaciones y espacios confinados. Motor a gasolina de alto rendimiento.</p>
       <div class="fleet-card-footer">
         <div class="fleet-price">$1,200 <small>/ día</small></div>
-        <div class="fleet-arrow">
+        <a href="#contacto" class="fleet-arrow" aria-label="Contactar por bailarinas compactadoras">
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 12L12 4M12 4H5M12 4v7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
+        </a>
       </div>
     </div>
 
@@ -1054,9 +1062,9 @@
       <p>Helicópteros para concreto con aspas intercambiables. Acabado liso y profesional en pisos industriales, naves y estacionamientos.</p>
       <div class="fleet-card-footer">
         <div class="fleet-price">$2,800 <small>/ día</small></div>
-        <div class="fleet-arrow">
+        <a href="#contacto" class="fleet-arrow" aria-label="Contactar por allanadoras de círculo">
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 12L12 4M12 4H5M12 4v7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
+        </a>
       </div>
     </div>
 
@@ -1066,7 +1074,7 @@
 <!-- WHY US -->
 <section class="why" id="nosotros">
   <div class="reveal">
-    <div class="section-tag">¿Por qué Titan?</div>
+    <div class="section-tag">¿Por qué RyV Rentas?</div>
     <h2 class="section-title">Socios en cada<br>proyecto</h2>
   </div>
   <div class="why-grid">
@@ -1105,8 +1113,8 @@
       <div class="why-feature">
         <div class="why-feature-num">04</div>
         <div>
-          <h4>Trato directo y personalizado/h4>
-          <p>Cada cliente recibe seguimiento personal desde la renta hasta la devolución del equipo..</p>
+          <h4>Trato directo y personalizado</h4>
+          <p>Cada cliente recibe seguimiento personal desde la renta hasta la devolución del equipo.</p>
         </div>
       </div>
       <div class="why-feature">
@@ -1171,7 +1179,7 @@
     <h2 class="section-title">¿Listo para<br>tu próximo proyecto?</h2>
     <p class="section-subtitle">Solicita una cotización sin compromiso. Nuestro equipo te responde en menos de 2 horas.</p>
     <div class="cta-actions">
-      <a href="tel:+528001234567" class="btn-primary">
+      <a href="tel:+526565341953" class="btn-primary">
         Llamar Ahora
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l2-1.5a1 1 0 011 0l3.5 2a1 1 0 01.5.87v2.13a1 1 0 01-.29.71l-1.42 1.41a10 10 0 01-4.58-4.58L8.13 2.6A1 1 0 006 3z" stroke="currentColor" stroke-width="1.5"/><path d="M10 8a4 4 0 01-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
       </a>
@@ -1197,7 +1205,7 @@
 
       <div class="footer-col">
         <h5>Contacto</h5>
-        <a href="#">656 534 1953</a>
+        <a href="tel:+526565341953">656 534 1953</a>
         <a href="#"><span class="__cf_email__" data-cfemail="99faf6f7edf8faedf6d9edf0edf8f7ebfcf7edf8b7f4e1">[email&#160;protected]</span></a>
         <a href="#">Cd. Juárez, Chih.</a>
       </div>
@@ -1206,7 +1214,9 @@
   <div class="footer-bottom">
     <span>© 2026 RyV Rentas. Todos los derechos reservados.</span>
     <div class="footer-social">
-      <a href="#">fb</a>
+      <a href="https://www.facebook.com/profile.php?id=61552148606518&locale=es_LA" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-brand-facebook"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M7 10v4h3v7h4v-7h3l1 -4h-4v-2a1 1 0 0 1 1 -1h3v-4h-3a5 5 0 0 0 -5 5v2h-3" /></svg>
+      </a>
     </div>
   </div>
 </footer>
