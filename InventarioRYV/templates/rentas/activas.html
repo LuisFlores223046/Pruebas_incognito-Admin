@@ -1,13 +1,20 @@
 {% extends "base.html" %}
 
-{% block title %}Rentas activas — RYV Rentas{% endblock %}
+{% block title %}Rentas — RYV Rentas{% endblock %}
 
 {% block content %}
 <div class="pagina-encabezado">
-    <h1 class="pagina-titulo">Rentas activas</h1>
+    <h1 class="pagina-titulo">Rentas</h1>
     <div class="pagina-acciones">
         {% if request.user.es_administrador %}
-            <a href="{% url 'rentas:nueva' %}" class="btn-primario">+ Nueva renta</a>
+            <a href="{% url 'rentas:nueva' %}" class="btn-primario btn-registrar-renta">
+                Registrar Renta
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="3"/>
+                    <line x1="12" y1="8" x2="12" y2="16"/>
+                    <line x1="8" y1="12" x2="16" y2="12"/>
+                </svg>
+            </a>
         {% else %}
             <a href="{% url 'rentas:solicitar' %}" class="btn-secundario">Solicitar renta</a>
         {% endif %}
@@ -34,64 +41,78 @@
 </section>
 
 {% if rentas %}
-<div class="tabla-contenedor">
-    <table class="tabla-rentas">
-        <thead>
-            <tr>
-                <th scope="col">Equipo</th>
-                <th scope="col">Cant.</th>
-                <th scope="col">Cliente</th>
-                <th scope="col">Inicio</th>
-                <th scope="col">Vencimiento</th>
-                <th scope="col">Precio</th>
-                <th scope="col">Depósito</th>
-                <th scope="col">Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for renta in rentas %}
-            <tr class="tabla-fila
-                {% if renta.esta_vencida_sin_cerrar %}tabla-fila--vencida
-                {% elif renta.esta_por_vencer %}tabla-fila--por-vencer
-                {% endif %}">
-                <td class="tabla-celda">{{ renta.nombre_equipo_display }}</td>
-                <td class="tabla-celda tabla-celda--centrado">{{ renta.cantidad_total_equipos }}</td>
-                <td class="tabla-celda">{{ renta.cliente.nombre }}</td>
-                <td class="tabla-celda">{{ renta.fecha_inicio }}</td>
-                <td class="tabla-celda">
-                    {{ renta.fecha_vencimiento }}
-                    {% if renta.esta_vencida_sin_cerrar %}
-                        <span class="badge-vencimiento badge-vencimiento--vencida">Vencida</span>
-                    {% elif renta.esta_por_vencer %}
-                        <span class="badge-vencimiento badge-vencimiento--proxima">
-                            {{ renta.dias_para_vencer }} día{% if renta.dias_para_vencer != 1 %}s{% endif %}
-                        </span>
-                    {% endif %}
-                </td>
-                <td class="tabla-celda tabla-celda--monto">${{ renta.precio }}</td>
-                <td class="tabla-celda tabla-celda--monto">
-                    ${{ renta.deposito }}
-                    {% if renta.metodo_pago %}
-                        <span class="badge-metodo-pago">{{ renta.get_metodo_pago_display }}</span>
-                    {% endif %}
-                </td>
-                <td class="tabla-celda tabla-celda--acciones">
-                    <a href="{% url 'rentas:detalle' renta.pk %}" class="btn-tabla btn-tabla--ver">Ver / Finalizar</a>
-                    {% if not request.user.es_administrador %}
-                        <a href="{% url 'rentas:solicitar_cierre' renta.pk %}" class="btn-tabla btn-tabla--solicitar">
-                            Solicitar cierre
-                        </a>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="rentas-lista">
+
+    <!-- Encabezado de columnas -->
+    <div class="renta-fila renta-fila--encabezado">
+        <span></span>
+        <span class="renta-col renta-col--nombre">Nombre:</span>
+        <span class="renta-col renta-col--telefono">No. Teléfono:</span>
+        <span class="renta-col renta-col--fecha">Fecha de Inicio:</span>
+        <span class="renta-col renta-col--fecha">Fecha de Finalización:</span>
+        <span class="renta-col renta-col--estado">Estado:</span>
+        <span class="renta-col renta-col--editar">Editar:</span>
+    </div>
+
+    <!-- Filas de datos -->
+    {% for renta in rentas %}
+    <div class="renta-fila renta-fila--dato
+        {% if renta.esta_vencida_sin_cerrar %}renta-fila--vencida
+        {% elif renta.esta_por_vencer %}renta-fila--por-vencer
+        {% endif %}">
+
+        <span>
+            <a href="{% url 'rentas:detalle' renta.pk %}" class="renta-chevron">›</a>
+        </span>
+
+        <span class="renta-col renta-col--nombre">{{ renta.cliente.nombre }}</span>
+
+        <span class="renta-col renta-col--telefono">
+            {{ renta.cliente.telefono|default:"—" }}
+        </span>
+
+        <span class="renta-col renta-col--fecha">{{ renta.fecha_inicio }}</span>
+
+        <span class="renta-col renta-col--fecha">
+            {% if renta.fecha_vencimiento %}
+                {{ renta.fecha_vencimiento }}
+            {% else %}
+                --/--/----
+            {% endif %}
+        </span>
+
+        <span class="renta-col renta-col--estado">
+            {% if renta.esta_vencida_sin_cerrar %}
+                <span class="badge-renta-estado badge-renta-estado--vencida">VENCIDA</span>
+            {% elif renta.esta_por_vencer %}
+                <span class="badge-renta-estado badge-renta-estado--por-vencer">
+                    {{ renta.dias_para_vencer }}d
+                </span>
+            {% else %}
+                <span class="badge-renta-estado badge-renta-estado--activa">ACTIVA</span>
+            {% endif %}
+        </span>
+
+        <span class="renta-col renta-col--editar">
+            <a href="{% url 'rentas:detalle' renta.pk %}" class="btn-editar-renta" title="Ver / Editar">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+            </a>
+        </span>
+
+    </div>
+    {% endfor %}
+
 </div>
 {% include "components/_pagination.html" with page_obj=rentas %}
+
 {% else %}
 <div class="estado-vacio">
-    <p class="estado-vacio-mensaje">No hay rentas activas{% if filtro_cliente or filtro_equipo %} con esos filtros{% endif %}.</p>
+    <p class="estado-vacio-mensaje">
+        No hay rentas activas{% if filtro_cliente or filtro_equipo %} con esos filtros{% endif %}.
+    </p>
     {% if request.user.es_administrador %}
         <a href="{% url 'rentas:nueva' %}" class="btn-primario">Registrar primera renta</a>
     {% endif %}

@@ -1,39 +1,1269 @@
-{% extends "base_public.html" %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RyV Rentas</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a;
+    --white: #f5f2ed;
+    --cream: #eae5dc;
+    --accent: #d4a843;
+    --accent-dark: #b8912e;
+    --gray: #6b6560;
+    --gray-light: #9e9892;
+    --card-bg: #13110f;
+    --card-border: #2a2622;
+  }
 
-{% block title %}RYV Rentas — Sistema de Gestión{% endblock %}
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-{% block content %}
-<div class="landing-contenedor">
-    <header class="landing-encabezado">
-        <h1 class="landing-titulo">RYV Rentas</h1>
-        <p class="landing-subtitulo">
-            Sistema de gestión de inventario y rentas de herramienta y maquinaria<br>
-            Ciudad Juárez, Chihuahua
-        </p>
-    </header>
-    <main class="landing-principal">
-        <section class="landing-bienvenida">
-            <h2>Bienvenido al sistema</h2>
-            <p>Gestiona el inventario de equipos, registra rentas y consulta el historial de forma sencilla y segura.</p>
-            <a href="{% url 'authentication:login' %}" class="btn-primario btn-grande">Iniciar sesión</a>
-        </section>
-        <section class="landing-caracteristicas">
-            <article class="caracteristica">
-                <h3>Inventario</h3>
-                <p>Control completo de equipos y herramientas disponibles.</p>
-            </article>
-            <article class="caracteristica">
-                <h3>Rentas</h3>
-                <p>Registro y seguimiento de rentas activas con alertas de vencimiento.</p>
-            </article>
-            <article class="caracteristica">
-                <h3>Reportes</h3>
-                <p>Genera reportes en PDF de inventario y rentas por periodo.</p>
-            </article>
-        </section>
-    </main>
-    <footer class="landing-pie">
-        <p>RYV Rentas &mdash; Ciudad Juárez, Chihuahua, México</p>
-    </footer>
+  html {
+    scroll-behavior: smooth;
+    font-size: 16px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--black);
+    color: var(--white);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--black);
+  }
+
+  /* --- NOISE OVERLAY --- */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* --- NAV --- */
+  nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 1.5rem 4rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(10,10,10,0.6);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(212,168,67,0.08);
+    transition: all 0.4s ease;
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 0.15em;
+    color: var(--white);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .logo-mark {
+    width: 10px;
+    height: 10px;
+    background: var(--accent);
+    display: inline-block;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 2.5rem;
+    align-items: center;
+    list-style: none;
+  }
+
+  .nav-links a {
+    color: var(--gray-light);
+    text-decoration: none;
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: color 0.3s;
+    position: relative;
+  }
+
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: var(--accent);
+    transition: width 0.3s;
+  }
+
+  .nav-links a:hover { color: var(--white); }
+  .nav-links a:hover::after { width: 100%; }
+
+  .btn-nav {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #d4a843;
+    color: #0a0a0a !important;
+    border: 1.5px solid #b8912e;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.3s;
+  }
+
+  .btn-nav::after {
+    content: none !important;
+  }
+
+  .btn-nav:hover {
+    background: #b8912e;
+    color: #6b6560 !important;
+    transform: translateY(-1px);
+  }
+
+  /* --- HERO --- */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 8rem 4rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-bg-lines {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+
+  .hero-bg-lines::before,
+  .hero-bg-lines::after {
+    content: '';
+    position: absolute;
+    background: linear-gradient(180deg, transparent, rgba(212,168,67,0.04), transparent);
+  }
+
+  .hero-bg-lines::before {
+    width: 1px;
+    height: 100%;
+    left: 25%;
+    animation: lineReveal 2s ease forwards;
+  }
+
+  .hero-bg-lines::after {
+    width: 1px;
+    height: 100%;
+    right: 25%;
+    animation: lineReveal 2s 0.3s ease forwards;
+  }
+
+  @keyframes lineReveal {
+    from { transform: scaleY(0); transform-origin: top; }
+    to { transform: scaleY(1); transform-origin: top; }
+  }
+
+  .hero-glow {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(212,168,67,0.06) 0%, transparent 70%);
+    right: -100px;
+    top: 50%;
+    transform: translateY(-50%);
+    animation: glowPulse 6s ease-in-out infinite;
+  }
+
+  @keyframes glowPulse {
+    0%, 100% { opacity: 0.5; transform: translateY(-50%) scale(1); }
+    50% { opacity: 1; transform: translateY(-50%) scale(1.1); }
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 800px;
+  }
+
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.3s ease forwards;
+  }
+
+  .hero-tag::before {
+    content: '';
+    width: 40px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  .hero h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(4rem, 9vw, 8.5rem);
+    line-height: 0.92;
+    letter-spacing: -0.01em;
+    color: var(--white);
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.5s ease forwards;
+  }
+
+  .hero h1 span {
+    color: var(--accent);
+    position: relative;
+    display: inline-block;
+  }
+
+  .hero-desc {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: var(--gray-light);
+    max-width: 500px;
+    margin-bottom: 3rem;
+    font-weight: 300;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.7s ease forwards;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.9s ease forwards;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--accent);
+    color: var(--black);
+    padding: 1rem 2.5rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary:hover {
+    background: var(--accent-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 20px 40px rgba(212,168,67,0.15);
+  }
+
+  .btn-primary svg { transition: transform 0.3s; }
+  .btn-primary:hover svg { transform: translateX(4px); }
+
+  .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--white);
+    padding: 1rem 2rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: 1px solid var(--card-border);
+    background: transparent;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s;
+  }
+
+  .btn-outline:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .hero-stats {
+    position: absolute;
+    bottom: 4rem;
+    right: 4rem;
+    display: flex;
+    gap: 4rem;
+    z-index: 2;
+    opacity: 0;
+    animation: fadeUp 0.8s 1.1s ease forwards;
+  }
+
+  .stat {
+    text-align: right;
+  }
+
+  .stat-number {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3rem;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gray);
+    margin-top: 0.25rem;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Fallback: force visibility after animation duration in case animations don't fire */
+  @media screen {
+    .hero-tag, .hero h1, .hero-desc, .hero-actions, .hero-stats {
+      animation-fill-mode: forwards !important;
+    }
+  }
+
+  /* --- MARQUEE --- */
+  .marquee-section {
+    border-top: 1px solid var(--card-border);
+    border-bottom: 1px solid var(--card-border);
+    padding: 1.2rem 0;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .marquee-track {
+    display: flex;
+    animation: marquee 30s linear infinite;
+    width: max-content;
+  }
+
+  .marquee-item {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 0.3em;
+    color: var(--gray);
+    white-space: nowrap;
+    padding: 0 3rem;
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+  }
+
+  .marquee-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* --- SECTIONS SHARED --- */
+  section { padding: 7rem 4rem; }
+
+  .section-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+  }
+
+  .section-tag::before {
+    content: '';
+    width: 30px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    line-height: 1;
+    letter-spacing: -0.01em;
+    margin-bottom: 1rem;
+  }
+
+  .section-subtitle {
+    font-size: 1rem;
+    color: var(--gray-light);
+    font-weight: 300;
+    line-height: 1.6;
+    max-width: 500px;
+  }
+
+  /* --- FLEET / MAQUINARIA --- */
+  .fleet {
+    background: var(--black);
+  }
+
+  .fleet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 4rem;
+  }
+
+  .fleet-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+
+  .fleet-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    padding: 2.5rem 2rem 2rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    cursor: pointer;
+  }
+
+  .fleet-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s ease;
+  }
+
+  .fleet-card:hover::before { transform: scaleX(1); }
+
+  .fleet-card:hover {
+    border-color: rgba(212,168,67,0.2);
+    transform: translateY(-4px);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+  }
+
+  .fleet-icon {
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    color: var(--accent);
+  }
+
+  .fleet-card h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.75rem;
+  }
+
+  .fleet-card p {
+    font-size: 0.88rem;
+    color: var(--gray-light);
+    line-height: 1.6;
+    font-weight: 300;
+    margin-bottom: 1.5rem;
+  }
+
+  .fleet-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--card-border);
+  }
+
+  .fleet-price {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.3rem;
+    color: var(--accent);
+  }
+
+  .fleet-price small {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.68rem;
+    color: var(--gray);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .fleet-arrow {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--card-border);
+    color: var(--gray-light);
+    text-decoration: none;
+    line-height: 0;
+    overflow: hidden;
+    transition: all 0.3s;
+  }
+
+  .fleet-arrow svg {
+    display: block;
+    flex-shrink: 0;
+  }
+
+  .fleet-card:hover .fleet-arrow {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--black);
+  }
+
+  /* --- WHY US / POR QUÉ --- */
+  .why {
+    background: linear-gradient(180deg, var(--black) 0%, #0f0d0b 100%);
+    position: relative;
+  }
+
+  .why-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6rem;
+    align-items: center;
+    margin-top: 4rem;
+  }
+
+  .why-visual {
+    position: relative;
+    height: 500px;
+  }
+
+  .why-block {
+    position: absolute;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+  }
+
+  .why-block-1 {
+    width: 280px;
+    height: 320px;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .why-block-1-inner {
+    text-align: center;
+    padding: 2rem;
+  }
+
+  .why-block-1-inner .big-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 6rem;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .why-block-1-inner span {
+    display: block;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gray-light);
+    margin-top: 0.5rem;
+  }
+
+  .why-block-2 {
+    width: 220px;
+    height: 200px;
+    bottom: 40px;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent);
+  }
+
+  .why-block-2 .big-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 4.5rem;
+    color: var(--black);
+    line-height: 1;
+    text-align: center;
+  }
+
+  .why-block-2 span {
+    display: block;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(10,10,10,0.6);
+    margin-top: 0.25rem;
+  }
+
+  .why-line {
+    position: absolute;
+    width: 1px;
+    height: 120px;
+    background: linear-gradient(180deg, var(--accent), transparent);
+    top: 320px;
+    left: 140px;
+  }
+
+  .why-features {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+  }
+
+  .why-feature {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+  }
+
+  .why-feature-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    color: var(--accent);
+    line-height: 1;
+    flex-shrink: 0;
+    width: 32px;
+  }
+
+  .why-feature h4 {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+
+  .why-feature p {
+    font-size: 0.88rem;
+    color: var(--gray-light);
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  /* --- CTA --- */
+  .cta {
+    text-align: center;
+    padding: 8rem 4rem;
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .cta::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url('/media/equipos/WhatsApp%20Image%202026-04-26%20at%2000.32.13.jpeg') center center / cover no-repeat;
+    filter: blur(1.5px);
+    transform: scale(1.03);
+    z-index: 0;
+  }
+
+  .cta::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.58) 0%, rgba(0,0,0,0.52) 45%, rgba(0,0,0,0.62) 100%);
+    z-index: 1;
+  }
+
+  .cta > .reveal {
+    position: relative;
+    z-index: 2;
+  }
+
+  .cta .section-title {
+    margin-bottom: 1.5rem;
+    position: relative;
+  }
+
+  .cta .section-subtitle {
+    max-width: 550px;
+    margin: 0 auto 3rem;
+    position: relative;
+  }
+
+  .cta-actions {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  /* --- TESTIMONIALS --- */
+  .testimonials {
+    background: #0d0b09;
+    border-top: 1px solid var(--card-border);
+  }
+
+  .testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 4rem;
+  }
+
+  .testimonial-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    padding: 2.5rem 2rem;
+    transition: all 0.3s;
+  }
+
+  .testimonial-card:hover {
+    border-color: rgba(212,168,67,0.15);
+  }
+
+  .testimonial-stars {
+    color: var(--accent);
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    margin-bottom: 1.25rem;
+  }
+
+  .testimonial-card blockquote {
+    font-size: 0.92rem;
+    line-height: 1.7;
+    color: var(--gray-light);
+    font-weight: 300;
+    font-style: italic;
+    margin-bottom: 1.5rem;
+  }
+
+  .testimonial-author {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .testimonial-avatar {
+    width: 36px;
+    height: 36px;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.9rem;
+    color: var(--black);
+  }
+
+  .testimonial-author-info strong {
+    font-size: 0.82rem;
+    font-weight: 500;
+    display: block;
+  }
+
+  .testimonial-author-info span {
+    font-size: 0.72rem;
+    color: var(--gray);
+  }
+
+  /* --- FOOTER --- */
+  footer {
+    border-top: 1px solid var(--card-border);
+    padding: 4rem;
+  }
+
+  .footer-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 4rem;
+  }
+
+  .footer-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 0.15em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .footer-cols {
+    display: flex;
+    gap: 5rem;
+  }
+
+  .footer-col h5 {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gray);
+    margin-bottom: 1.25rem;
+  }
+
+  .footer-col a {
+    display: block;
+    color: var(--gray-light);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 300;
+    margin-bottom: 0.75rem;
+    transition: color 0.2s;
+  }
+
+  .footer-col a:hover { color: var(--accent); }
+
+  .footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 2rem;
+    border-top: 1px solid var(--card-border);
+  }
+
+  .footer-bottom span {
+    font-size: 0.75rem;
+    color: var(--gray);
+  }
+
+  .footer-social {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .footer-social a {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--card-border);
+    color: var(--gray-light);
+    text-decoration: none;
+    font-size: 0.8rem;
+    transition: all 0.3s;
+  }
+
+  .footer-social a:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* --- SCROLL ANIMATIONS --- */
+  .reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* --- RESPONSIVE --- */
+  @media (max-width: 1024px) {
+    nav { padding: 1.25rem 2rem; }
+    section { padding: 5rem 2rem; }
+    .hero { padding: 7rem 2rem 4rem; }
+    .fleet-grid { grid-template-columns: repeat(3, 1fr); }
+    .why-grid { grid-template-columns: 1fr; gap: 3rem; }
+    .why-visual { height: 350px; }
+    .testimonials-grid { grid-template-columns: 1fr 1fr; }
+    .hero-stats { position: static; margin-top: 4rem; justify-content: flex-start; }
+    .stat { text-align: left; }
+    .footer-top { flex-direction: column; gap: 3rem; }
+  }
+
+  @media (max-width: 640px) {
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { display: none; }
+    section { padding: 4rem 1.5rem; }
+    .hero { padding: 6rem 1.5rem 3rem; }
+    .fleet-grid { grid-template-columns: 1fr; }
+    .fleet-header { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
+    .testimonials-grid { grid-template-columns: 1fr; }
+    .hero-actions { flex-direction: column; align-items: flex-start; }
+    .hero-stats { flex-direction: column; gap: 1.5rem; }
+    .why-visual { height: 300px; }
+    .why-block-1 { width: 200px; height: 240px; }
+    .why-block-1-inner .big-num { font-size: 4rem; }
+    .why-block-2 { width: 160px; height: 150px; }
+    .why-block-2 .big-num { font-size: 3rem; }
+    .footer-cols { flex-direction: column; gap: 2rem; }
+    .cta-actions { flex-direction: column; align-items: center; }
+    footer { padding: 3rem 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="logo">
+    <span class="logo-mark"></span>RyV Rentas
+  </a>
+  <ul class="nav-links">
+    <li>
+      <a href="{% url 'authentication:login' %}" class="btn-nav" title="Iniciar sesión" aria-label="Iniciar sesión">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-user" aria-hidden="true"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M12 2a5 5 0 1 1 -5 5l.005 -.217a5 5 0 0 1 4.995 -4.783z" /><path d="M14 14a5 5 0 0 1 5 5v1a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-1a5 5 0 0 1 5 -5h4z" /></svg>
+      </a>
+    </li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg-lines"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-content">
+    <div class="hero-tag">Renta de Maquinaria de Construcción</div>
+    <h1>CONSTRUYE<br>EN <span>GRANDE</span></h1>
+    <p class="hero-desc">Maquinaria de alto rendimiento para tus proyectos de construcción. Entrega puntual y calidad garantizada.</p>
+    <div class="hero-actions">
+      <a href="#contacto" class="btn-primary">
+        Solicitar Cotización
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a href="#flota" class="btn-outline">Ver Maquinaria</a>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-number">50+</div>
+      <div class="stat-label">Equipos Disponibles</div>
+    </div>
+    <div class="stat">
+      <div class="stat-number">4</div>
+      <div class="stat-label">Años de Experiencia</div>
+    </div>
+    <div class="stat">
+      <div class="stat-number">98%</div>
+      <div class="stat-label">Clientes Satisfechos</div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-section">
+  <div class="marquee-track">
+    <div class="marquee-item">ANDAMIOS <span class="marquee-dot"></span></div>
+    <div class="marquee-item">BAILARINAS COMPACTADORAS <span class="marquee-dot"></span></div>
+    <div class="marquee-item">ALLANADORAS DE CÍRCULO <span class="marquee-dot"></span></div>
+    <div class="marquee-item">ANDAMIOS <span class="marquee-dot"></span></div>
+    <div class="marquee-item">BAILARINAS COMPACTADORAS <span class="marquee-dot"></span></div>
+    <div class="marquee-item">ALLANADORAS DE CÍRCULO <span class="marquee-dot"></span></div>
+  </div>
 </div>
-{% endblock %}
+
+<!-- FLEET -->
+<section class="fleet" id="flota">
+  <div class="fleet-header reveal">
+    <div>
+      <div class="section-tag">Nuestra Flota</div>
+      <h2 class="section-title">Maquinaria<br>de Primera</h2>
+    </div>
+    <p class="section-subtitle">Equipos de las marcas líderes, con mantenimiento preventivo riguroso y disponibilidad inmediata.</p>
+  </div>
+  <div class="fleet-grid">
+
+    <div class="fleet-card reveal">
+      <div class="fleet-icon">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+          <rect x="12" y="6" width="2" height="36" stroke="currentColor" stroke-width="2"/>
+          <rect x="34" y="6" width="2" height="36" stroke="currentColor" stroke-width="2"/>
+          <path d="M14 12h20M14 22h20M14 32h20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path d="M14 17h20" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 3"/>
+          <path d="M14 27h20" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 3"/>
+          <rect x="8" y="40" width="32" height="3" rx="1" stroke="currentColor" stroke-width="2"/>
+          <path d="M14 12l20 10M34 12l-20 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+        </svg>
+      </div>
+      <h3>Andamios</h3>
+      <p>Sistemas modulares y multidireccionales certificados. Fachadas, interiores y obra civil. Alturas de hasta 30 metros con máxima seguridad.</p>
+      <div class="fleet-card-footer">
+        <div class="fleet-price">$850 <small>/ módulo / semana</small></div>
+        <a href="#contacto" class="fleet-arrow" aria-label="Contactar por andamios">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 12L12 4M12 4H5M12 4v7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <div class="fleet-card reveal">
+      <div class="fleet-icon">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+          <rect x="18" y="8" width="12" height="6" rx="2" stroke="currentColor" stroke-width="2"/>
+          <rect x="20" y="14" width="8" height="16" rx="1" stroke="currentColor" stroke-width="2"/>
+          <path d="M22 14v-2M26 14v-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <rect x="16" y="30" width="16" height="4" rx="2" stroke="currentColor" stroke-width="2"/>
+          <path d="M20 34v4M28 34v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <ellipse cx="20" cy="40" rx="3" ry="2" stroke="currentColor" stroke-width="1.5"/>
+          <ellipse cx="28" cy="40" rx="3" ry="2" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M21 20h6M21 24h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="2 2"/>
+          <path d="M24 30v-16" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+        </svg>
+      </div>
+      <h3>Bailarinas Compactadoras</h3>
+      <p>Apisonadoras vibratorias tipo bailarina para compactación de zanjas, cimentaciones y espacios confinados. Motor a gasolina de alto rendimiento.</p>
+      <div class="fleet-card-footer">
+        <div class="fleet-price">$1,200 <small>/ día</small></div>
+        <a href="#contacto" class="fleet-arrow" aria-label="Contactar por bailarinas compactadoras">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 12L12 4M12 4H5M12 4v7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <div class="fleet-card reveal">
+      <div class="fleet-icon">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="26" r="14" stroke="currentColor" stroke-width="2"/>
+          <circle cx="24" cy="26" r="7" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 3"/>
+          <circle cx="24" cy="26" r="2" fill="currentColor"/>
+          <path d="M24 12V8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path d="M20 8h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path d="M24 26l10-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M24 26l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M24 26l7 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M10 26H6M42 26h-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+        </svg>
+      </div>
+      <h3>Allanadoras de Círculo</h3>
+      <p>Helicópteros para concreto con aspas intercambiables. Acabado liso y profesional en pisos industriales, naves y estacionamientos.</p>
+      <div class="fleet-card-footer">
+        <div class="fleet-price">$2,800 <small>/ día</small></div>
+        <a href="#contacto" class="fleet-arrow" aria-label="Contactar por allanadoras de círculo">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 12L12 4M12 4H5M12 4v7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- WHY US -->
+<section class="why" id="nosotros">
+  <div class="reveal">
+    <div class="section-tag">¿Por qué RyV Rentas?</div>
+    <h2 class="section-title">Socios en cada<br>proyecto</h2>
+  </div>
+  <div class="why-grid">
+    <div class="why-visual reveal">
+      <div class="why-block why-block-1">
+        <div class="why-block-1-inner">
+          <div class="big-num">4</div>
+          <span>Años construyendo confianza</span>
+        </div>
+      </div>
+      <div class="why-line"></div>
+      
+    </div>
+    <div class="why-features reveal">
+      <div class="why-feature">
+        <div class="why-feature-num">01</div>
+        <div>
+          <h4>Entrega en Obra</h4>
+          <p>Transportamos la maquinaria directo a tu proyecto. Sin complicaciones, con horario coordinado a tu medida.</p>
+        </div>
+      </div>
+      <div class="why-feature">
+        <div class="why-feature-num">02</div>
+        <div>
+          <h4>Herramienta calificada</h4>
+          <p>Garantizamos que siempre trabajas con equipo de calidad y cumplimiento.</p>
+        </div>
+      </div>
+      <div class="why-feature">
+        <div class="why-feature-num">03</div>
+        <div>
+          <h4>Proceso rápido y sin complicaciones</h4>
+          <p>Desde el primer contacto hasta la entrega, hacemos que rentar sea sencillo. Sin burocracia, sin demoras.</p>
+        </div>
+      </div>
+      <div class="why-feature">
+        <div class="why-feature-num">04</div>
+        <div>
+          <h4>Trato directo y personalizado</h4>
+          <p>Cada cliente recibe seguimiento personal desde la renta hasta la devolución del equipo.</p>
+        </div>
+      </div>
+      <div class="why-feature">
+        <div class ="why-feature-num">05</div>
+        <div>
+            <h4>Garantía incluida</h4>
+            <p>Si por alguna razón la maquinaria deja de funcionar, se cambia por otra sin ningún costo adicional. </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS 
+<section class="testimonials" id="testimonios">
+  <div class="reveal">
+    <div class="section-tag">Testimonios</div>
+    <h2 class="section-title">Lo que dicen<br>nuestros clientes</h2>
+  </div>
+  <div class="testimonials-grid">
+    <div class="testimonial-card reveal">
+      <div class="testimonial-stars">★ ★ ★ ★ ★</div>
+      <blockquote>"Contratamos dos excavadoras para un proyecto en Monterrey. La entrega fue puntual y los equipos en excelentes condiciones."</blockquote>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">RM</div>
+        <div class="testimonial-author-info">
+          <strong>Roberto Medina</strong>
+          <span>Dir. de Obra — Grupo Constructor Alfa</span>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial-card reveal">
+      <div class="testimonial-stars">★ ★ ★ ★ ★</div>
+      <blockquote>"El soporte técnico 24/7 fue clave. Tuvimos un imprevisto un domingo y en 3 horas ya teníamos equipo de reemplazo."</blockquote>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">LV</div>
+        <div class="testimonial-author-info">
+          <strong>Laura Villarreal</strong>
+          <span>Gerente de Proyectos — ICSA</span>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial-card reveal">
+      <div class="testimonial-stars">★ ★ ★ ★ ★</div>
+      <blockquote>"Llevamos 3 años trabajando con Titan. La relación calidad-precio es inmejorable y el trato siempre profesional."</blockquote>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">FC</div>
+        <div class="testimonial-author-info">
+          <strong>Fernando Castillo</strong>
+          <span>CEO — Desarrollos Castillo</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+-->
+
+<!-- CTA -->
+<section class="cta" id="contacto">
+  <div class="reveal">
+    <div class="section-tag">Comienza Hoy</div>
+    <h2 class="section-title">¿Listo para<br>tu próximo proyecto?</h2>
+    <p class="section-subtitle">Solicita una cotización sin compromiso. Nuestro equipo te responde en menos de 2 horas.</p>
+    <div class="cta-actions">
+      <a href="tel:+526565341953" class="btn-primary">
+        Llamar Ahora
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l2-1.5a1 1 0 011 0l3.5 2a1 1 0 01.5.87v2.13a1 1 0 01-.29.71l-1.42 1.41a10 10 0 01-4.58-4.58L8.13 2.6A1 1 0 006 3z" stroke="currentColor" stroke-width="1.5"/><path d="M10 8a4 4 0 01-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </a>
+      <a href="https://www.facebook.com/profile.php?id=61552148606518&locale=es_LA" class="btn-outline" target="_blank" rel="noopener noreferrer">Facebook</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div>
+      <div class="footer-logo"><span class="logo-mark"></span>RyV Rentas</div>
+      <p style="font-size:0.85rem;color:var(--gray-light);margin-top:0.75rem;font-weight:300;max-width:280px;">Renta de maquinaria para construcción. Servicio desde 2022.</p>
+    </div>
+    <div class="footer-cols">
+      <div class="footer-col">
+        <h5>Maquinaria</h5>
+        <a href="#">Andamios</a>
+        <a href="#">Bailarinas Compactadoras</a>
+        <a href="#">Allanadoras de Círculo</a>
+      </div>
+
+      <div class="footer-col">
+        <h5>Contacto</h5>
+        <a href="tel:+526565341953">656 534 1953</a>
+        <a href="#"><span class="__cf_email__" data-cfemail="99faf6f7edf8faedf6d9edf0edf8f7ebfcf7edf8b7f4e1">[email&#160;protected]</span></a>
+        <a href="#">Cd. Juárez, Chih.</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 RyV Rentas. Todos los derechos reservados.</span>
+    <div class="footer-social">
+      <a href="https://www.facebook.com/profile.php?id=61552148606518&locale=es_LA" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-brand-facebook"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M7 10v4h3v7h4v-7h3l1 -4h-4v-2a1 1 0 0 1 1 -1h3v-4h-3a5 5 0 0 0 -5 5v2h-3" /></svg>
+      </a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Scroll reveal - with fallback for iframe/embed environments
+  function revealAll() {
+    document.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
+  }
+
+  try {
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.01 });
+
+    reveals.forEach(el => observer.observe(el));
+
+    // Fallback: if elements still hidden after 1.5s, force show
+    setTimeout(() => {
+      document.querySelectorAll('.reveal:not(.visible)').forEach(el => el.classList.add('visible'));
+      // Also force hero elements visible
+      document.querySelectorAll('.hero-tag, .hero h1, .hero-desc, .hero-actions, .hero-stats').forEach(el => {
+        el.style.opacity = '1';
+        el.style.transform = 'translateY(0)';
+      });
+    }, 1500);
+  } catch(e) {
+    revealAll();
+  }
+
+  // Nav scroll effect
+  const nav = document.querySelector('nav');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 80) {
+      nav.style.padding = '1rem 4rem';
+      nav.style.background = 'rgba(10,10,10,0.85)';
+    } else {
+      nav.style.padding = '1.5rem 4rem';
+      nav.style.background = 'rgba(10,10,10,0.6)';
+    }
+  });
+</script>
+</body>
+</html>
