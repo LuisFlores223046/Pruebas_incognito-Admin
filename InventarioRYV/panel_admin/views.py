@@ -263,10 +263,11 @@ def eliminar_usuario(request, pk):
         )
         return redirect('panel_admin:usuarios')
 
+    usuarios = Usuario.objects.all().order_by('username')
     return render(
         request,
         'panel_admin/usuarios_lista.html',
-        {'usuario_a_eliminar': usuario},
+        {'usuarios': usuarios, 'usuario_a_eliminar': usuario},
     )
 
 

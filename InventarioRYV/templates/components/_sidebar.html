@@ -77,14 +77,5 @@
             </div>
         {% endif %}
     </nav>
-
-    {% if request.user.is_authenticated %}
-    <div class="sidebar-footer">
-        <form method="post" action="{% url 'authentication:logout' %}">
-            {% csrf_token %}
-            <button type="submit" class="btn-sidebar-logout">Cerrar sesión</button>
-        </form>
-    </div>
-    {% endif %}
 </aside>
 {% endwith %}
