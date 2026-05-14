@@ -130,11 +130,10 @@ class RentaForm(forms.ModelForm):
 
     def clean(self):
         """
-        Valida que las fechas sean coherentes y que el depósito cumpla el mínimo requerido.
+        Valida que las fechas sean coherentes y que el depósito sea numérico.
 
         La fecha de vencimiento debe ser posterior a la fecha de inicio.
-        El depósito mínimo es el 50% del precio total. Si se ingresa un depósito
-        mayor a cero, el método de pago es obligatorio.
+        Si se ingresa un depósito mayor a cero, el método de pago es obligatorio.
 
         Retorna:
             dict: Los datos limpios del formulario si la validación es exitosa.
@@ -154,15 +153,6 @@ class RentaForm(forms.ModelForm):
                 raise forms.ValidationError(
                     'La fecha de vencimiento debe ser posterior '
                     'a la fecha de inicio.'
-                )
-
-        if precio and precio > 0:
-            minimo = (precio * Decimal('0.5')).quantize(Decimal('0.01'))
-            if deposito < minimo:
-                self.add_error(
-                    'deposito',
-                    f'El depósito mínimo es el 50% del precio '
-                    f'(${minimo}). Ingresa al menos ${minimo}.',
                 )
 
         if deposito and deposito > 0:
@@ -283,11 +273,10 @@ class SolicitudRentaForm(forms.Form):
 
     def clean(self):
         """
-        Valida que las fechas sean coherentes y que el depósito cumpla el mínimo requerido.
+        Valida que las fechas sean coherentes y que el depósito sea numérico.
 
         La fecha de vencimiento debe ser posterior a la fecha de inicio.
-        El depósito mínimo es el 50% del precio total. Si se ingresa un depósito
-        mayor a cero, el método de pago es obligatorio.
+        Si se ingresa un depósito mayor a cero, el método de pago es obligatorio.
 
         Retorna:
             dict: Los datos limpios del formulario si la validación es exitosa.
@@ -307,15 +296,6 @@ class SolicitudRentaForm(forms.Form):
                 'La fecha de vencimiento debe ser posterior '
                 'a la fecha de inicio.'
             )
-
-        if precio and precio > 0:
-            minimo = (precio * Decimal('0.5')).quantize(Decimal('0.01'))
-            if deposito < minimo:
-                self.add_error(
-                    'deposito',
-                    f'El depósito mínimo es el 50% del precio '
-                    f'(${minimo}). Ingresa al menos ${minimo}.',
-                )
 
         if deposito and deposito > 0:
             if not cleaned.get('metodo_pago'):
