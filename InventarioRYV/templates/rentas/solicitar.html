@@ -135,7 +135,7 @@ var equiposDisponibles = [
     { pk: '{{ eq.pk }}', nombre: '{{ eq.nombre|escapejs }}', max: {{ eq.calc_disp }} }{% if not forloop.last %},{% endif %}
     {% endfor %}
 ];
-var equipoInicialPk = '{{ equipo_inicial_pk|default:"" }}';
+var equipoInicialPk = '{{ equipo_inicial_pk|default:""|escapejs }}';
 var filaCount = 0;
 
 function crearFilaEquipo(index, preseleccionPk) {
