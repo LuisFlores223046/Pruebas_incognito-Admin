@@ -103,7 +103,7 @@
                     {{ form.deposito.label }} <span class="campo-requerido">*</span>
                 </label>
                 {{ form.deposito }}
-                <small id="hint-deposito" class="campo-ayuda">Mínimo el 50% del precio.</small>
+                <small id="hint-deposito" class="campo-ayuda">Ingresa un depósito numérico en MXN.</small>
                 {% for error in form.deposito.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
             </div>
 
@@ -220,31 +220,31 @@ function actualizarBotonesQuitar() {
     });
 }
 
-// Hint de depósito mínimo
+// Hint de depósito
 document.addEventListener('DOMContentLoaded', function() {
-    var precioInput = document.getElementById('id_precio_renta');
     var depositoInput = document.getElementById('id_deposito_renta');
     var hint = document.getElementById('hint-deposito');
 
-    if (precioInput && depositoInput) {
-        precioInput.addEventListener('input', actualizarHintDeposito);
+    if (!depositoInput || !hint) {
+        return;
+    }
+
+    if (depositoInput) {
         depositoInput.addEventListener('input', actualizarHintDeposito);
     }
 
     function actualizarHintDeposito() {
-        var precio = parseFloat(precioInput.value) || 0;
         var deposito = parseFloat(depositoInput.value) || 0;
-        if (precio > 0) {
-            var minimo = (precio * 0.5).toFixed(2);
-            if (deposito < precio * 0.5) {
-                hint.textContent = 'Mínimo el 50% del precio: $' + minimo;
-                hint.style.color = '#c0392b';
-            } else {
-                hint.textContent = 'Mínimo el 50% del precio: $' + minimo + ' ✓';
+        if (depositoInput.value.trim() !== '') {
+            if (!Number.isNaN(deposito) && deposito >= 0) {
+                hint.textContent = 'Depósito numérico válido ingresado.';
                 hint.style.color = '#1e8449';
+            } else {
+                hint.textContent = 'Ingresa un valor numérico válido en MXN.';
+                hint.style.color = '#c0392b';
             }
         } else {
-            hint.textContent = 'Mínimo el 50% del precio.';
+            hint.textContent = 'Ingresa un depósito numérico en MXN.';
             hint.style.color = '';
         }
     }
