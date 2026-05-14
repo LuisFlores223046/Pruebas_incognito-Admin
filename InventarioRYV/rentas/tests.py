@@ -259,6 +259,13 @@ class TestRentaForm:
             'precio': '1000.00',
             'deposito': '400.00',
         }))
+        assert form.is_valid(), form.errors
+
+    def test_deposito_no_numerico_invalida(self, db):
+        from rentas.forms import RentaForm
+        form = RentaForm(data=self._datos_base({
+            'deposito': 'abc',
+        }))
         assert not form.is_valid()
         assert 'deposito' in form.errors
 
@@ -444,6 +451,13 @@ class TestSolicitudRentaForm:
         form = SolicitudRentaForm(data=self._datos_base({
             'precio': '1000.00',
             'deposito': '400.00',
+        }))
+        assert form.is_valid(), form.errors
+
+    def test_deposito_no_numerico_invalida(self, db):
+        from rentas.forms import SolicitudRentaForm
+        form = SolicitudRentaForm(data=self._datos_base({
+            'deposito': 'abc',
         }))
         assert not form.is_valid()
         assert 'deposito' in form.errors
